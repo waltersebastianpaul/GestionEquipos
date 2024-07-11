@@ -6,7 +6,9 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.lifecycle.ViewModelProvider
+import com.example.gestionequipos.R
 import com.example.gestionequipos.databinding.FragmentHomeBinding
 
 class HomeFragment : Fragment() {
@@ -33,6 +35,15 @@ class HomeFragment : Fragment() {
             textView.text = it
         }
         return root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        val buttonParteDiario = binding.buttonParteDiario
+        buttonParteDiario.setOnClickListener {
+            findNavController().navigate(R.id.action_nav_home_to_nav_partediario)
+        }
     }
 
     override fun onDestroyView() {
