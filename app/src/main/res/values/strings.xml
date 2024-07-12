@@ -13,9 +13,9 @@
 
     <string name="hint_fecha">Fecha</string>
     <string name="hint_equipo">Equipo</string>
-    <string name="hint_horas_inicio">Horas de inicio</string>
-    <string name="hint_horas_fin">Horas de fin</string>
-    <string name="hint_horas_trabajadas">Horas trabajadas</string>
+    <string name="hint_horas_inicio">Hora inicial</string>
+    <string name="hint_horas_fin">Hora final</string>
+    <string name="hint_horas_trabajadas">Total</string>
     <string name="hint_observaciones">Observaciones</string>
     <string name="hint_obra">Obra</string>
     <string name="button_guardar">Guardar</string>
