@@ -1,7 +1,8 @@
 package com.example.gestionequipos.ui.partediario
 
-import android.app.DatePickerDialog
-import android.icu.util.Calendar
+import android.content.Context
+import android.content.res.ColorStateList
+import android.icu.text.SimpleDateFormat
 import android.os.Bundle
 import android.text.Editable
 import android.text.TextWatcher
@@ -9,20 +10,22 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.*
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
 import com.example.gestionequipos.R
 import com.example.gestionequipos.databinding.FragmentParteDiarioBinding
-import com.google.gson.Gson
-import com.google.gson.reflect.TypeToken
-import kotlinx.coroutines.*
-import okhttp3.*
-import java.io.IOException
 import java.util.Locale
 import com.example.gestionequipos.data.ParteDiario
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import com.google.android.material.datepicker.MaterialDatePicker
+import java.util.Date
 
 class ParteDiarioFragment : Fragment() {
 
@@ -30,6 +33,7 @@ class ParteDiarioFragment : Fragment() {
     private val binding get() = _binding!!
 
     private val viewModel: ParteDiarioViewModel by viewModels()
+    private var isDatePickerOpen = false // Variable para controlar si el DatePicker está abierto
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -38,11 +42,6 @@ class ParteDiarioFragment : Fragment() {
     ): View {
         _binding = FragmentParteDiarioBinding.inflate(inflater, container, false)
         val view = binding.root
-
-//        // Inicializa los AutoCompleteTextViews aquí
-//        val equipoAutocomplete: AutoCompleteTextView = binding.equipoAutocomplete
-//        val obraAutocomplete: AutoCompleteTextView = binding.obraAutocomplete
-//        val estadoAutocomplete: AutoCompleteTextView = binding.estadoAutocomplete
 
         // Observa los datos del ViewModel y configura los adapters
         viewModel.equipos.observe(viewLifecycleOwner) { equipos ->
@@ -58,15 +57,6 @@ class ParteDiarioFragment : Fragment() {
             binding.obraAutocomplete.setAdapter(adapterObras)
             Log.d("ParteDiario", "Obras: $obras")
         }
-
-        // Eliminar si no hay errores
-//        viewModel.estados.observe(viewLifecycleOwner) { estados ->
-//            // val estadoStrings = estados.map { "${it.nombre}" }.toTypedArray()
-//            val estadoStrings = estados.map { it.nombre.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() } }.toTypedArray()
-//            val adapterEstados = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, estadoStrings)
-//            binding.estadoAutocomplete.setAdapter(adapterEstados)
-//            Log.d("ParteDiario", "Estados: $estados")
-//        }
 
         return view
     }
@@ -94,10 +84,11 @@ class ParteDiarioFragment : Fragment() {
         val obraTextInputLayout: TextInputLayout = binding.obraTextInputLayout
         val obraAutocomplete: AutoCompleteTextView = binding.obraAutocomplete
 
-        // Eliminar si no hay errores
-//        val estadoAutocomplete: AutoCompleteTextView = binding.estadoAutocomplete
-
         val guardarButton: Button = binding.guardarButton
+        val nuevoParteButton: Button = binding.nuevoParteButton
+
+        val fab: FloatingActionButton = requireActivity().findViewById(R.id.fab)
+        fab.visibility = View.GONE
 
         // TextWatcher para calcular horas trabajadas
         val horasTextWatcher = object: TextWatcher {
@@ -110,17 +101,19 @@ class ParteDiarioFragment : Fragment() {
             }
         }
 
+        // TextWatcher para fechaEditText
         fechaEditText.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
             override fun afterTextChanged(s: Editable?) {
-                if (s.isNullOrEmpty()) {
-                    fechaTextInputLayout.error = "Campo requerido"
-                    fechaTextInputLayout.isErrorEnabled = true
-                } else {
-                    fechaTextInputLayout.isErrorEnabled = false
+                if (fechaTextInputLayout.isErrorEnabled) { // Verifica si ya existe un error
+                    if (s.isNullOrEmpty()) {
+                        fechaTextInputLayout.error = "Campo requerido"
+                    } else {
+                        fechaTextInputLayout.isErrorEnabled = false // Borra el error si el campo ya no está vacío
+                    }
                 }
             }
         })
@@ -132,11 +125,12 @@ class ParteDiarioFragment : Fragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
             override fun afterTextChanged(s: Editable?) {
-                if (s.isNullOrEmpty()) {
-                    equipoTextInputLayout.error = "Campo requerido"
-                    equipoTextInputLayout.isErrorEnabled = true
-                } else {
-                    equipoTextInputLayout.isErrorEnabled= false
+                if (equipoTextInputLayout.isErrorEnabled) {
+                    if (s.isNullOrEmpty()){
+                        equipoTextInputLayout.error = "Campo requerido"
+                    } else {
+                        equipoTextInputLayout.isErrorEnabled = false
+                    }
                 }
             }
         })
@@ -148,13 +142,13 @@ class ParteDiarioFragment : Fragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
             override fun afterTextChanged(s: Editable?) {
-                if (s.isNullOrEmpty()) {
-                    horasInicioTextInputLayout.error = "Campo requerido" // Asegúrate de tener un TextInputLayout para horasInicioEditText
-                    horasInicioTextInputLayout.isErrorEnabled = true
-                } else {
-                    horasInicioTextInputLayout.isErrorEnabled = false
+                if (horasInicioTextInputLayout.isErrorEnabled) {
+                    if (s.isNullOrEmpty()) {
+                        horasInicioTextInputLayout.error = "Campo requerido"
+                    } else {
+                        horasInicioTextInputLayout.isErrorEnabled = false}
                 }
-                calcularHorasTrabajadas() // Llama a la función para actualizar las horas trabajadas
+                calcularHorasTrabajadas()
             }
         })
 
@@ -165,13 +159,14 @@ class ParteDiarioFragment : Fragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
             override fun afterTextChanged(s: Editable?) {
-                if (s.isNullOrEmpty()) {
-                    horasFinTextInputLayout.error = "Campo requerido" // Asegúrate de tener un TextInputLayout para horasFinEditText
-                    horasFinTextInputLayout.isErrorEnabled = true
-                } else {
-                    horasFinTextInputLayout.isErrorEnabled = false
+                if (horasFinTextInputLayout.isErrorEnabled) {
+                    if (s.isNullOrEmpty()) {
+                        horasFinTextInputLayout.error = "Campo requerido"
+                    } else {
+                        horasFinTextInputLayout.isErrorEnabled = false
+                    }
                 }
-                calcularHorasTrabajadas() // Llama a la función para actualizar las horas trabajadas
+                calcularHorasTrabajadas()
             }
         })
 
@@ -182,11 +177,12 @@ class ParteDiarioFragment : Fragment() {
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
 
             override fun afterTextChanged(s: Editable?) {
-                if (s.isNullOrEmpty()) {
-                    obraTextInputLayout.error = "Campo requerido" // Asegúrate de tener un TextInputLayout para obraAutocomplete
-                    obraTextInputLayout.isErrorEnabled = true
-                } else {
-                    obraTextInputLayout.isErrorEnabled = false
+                if (obraTextInputLayout.isErrorEnabled) {
+                    if (s.isNullOrEmpty()) {
+                        obraTextInputLayout.error = "Campo requerido"
+                    } else {
+                        obraTextInputLayout.isErrorEnabled = false
+                    }
                 }
             }
         })
@@ -204,109 +200,54 @@ class ParteDiarioFragment : Fragment() {
         }
 
         // Configura el DatePicker para fechaEditText
-//        fechaEditText.setOnClickListener {
-//            val calendar = Calendar.getInstance()
-//            val year = calendar.get(Calendar.YEAR)
-//            val month = calendar.get(Calendar.MONTH)
-//            val day = calendar.get(Calendar.DAY_OF_MONTH)
-//
-//            val datePickerDialog = DatePickerDialog(
-//                requireContext(),
-//                { _, selectedYear, selectedMonth, dayOfMonth ->
-//                    val formattedDate = String.format(Locale.getDefault(), "%04d-%02d-%02d", selectedYear, selectedMonth + 1, dayOfMonth)
-//                    fechaEditText.setText(formattedDate)
-//                },
-//                year,
-//                month,
-//                day
-//            )
-//            datePickerDialog.show()
-//        }
+        fechaEditText.setOnClickListener {
+            if (!isDatePickerOpen) { // Verifica si el DatePicker ya está abierto
+                isDatePickerOpen = true // Marca el DatePicker como abierto
 
+                // Obtiene el InputMethodManager
+                val imm = context?.getSystemService(Context.INPUT_METHOD_SERVICE) as? InputMethodManager
 
-        // Configura el DatePicker para fechaEditText
-        fechaEditText.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
-            if (hasFocus) {
-                // Obtener la fechaactual del campo fechaEditText
-                val fechaActual = fechaEditText.text.toString()
-                val calendar = Calendar.getInstance()
-                if (fechaActual.isNotBlank()) {
-                    try {
-                        val parts = fechaActual.split("/")
-                        val dia = parts[0].toInt()
-                        val mes = parts[1].toInt() - 1 // Los meses en Calendar van de 0 a 11
-                        val anio = parts[2].toInt()
-                        calendar.set(anio, mes, dia)
-                    } catch (e: Exception) {
-                        // Manejar elcaso en que la fecha no tenga el formato correcto
-                    }
+                // Cierra el teclado
+                imm?.hideSoftInputFromWindow(fechaEditText.windowToken, 0)
+
+                // Muestra el DatePicker
+                val datePicker = MaterialDatePicker.Builder.datePicker()
+                    .setTitleText("Selecciona una fecha")
+                    .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
+                    .build()
+
+                datePicker.addOnPositiveButtonClickListener { selection ->
+                    // Formatea la fecha seleccionada y actualiza el EditText
+                    val simpleDateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                    val fechaFormateada = simpleDateFormat.format(Date(selection))
+                    fechaEditText.setText(fechaFormateada)
                 }
 
-                val year = calendar.get(Calendar.YEAR)
-                val month = calendar.get(Calendar.MONTH)
-                val day = calendar.get(Calendar.DAY_OF_MONTH)
-
-                val datePickerDialog = DatePickerDialog(
-                    requireActivity(), // Usar requireActivity() en lugar de requireContext()
-                    { _: DatePicker, selectedYear: Int, selectedMonth: Int, dayOfMonth: Int ->
-                        val formattedDate = String.format(Locale.getDefault(), "%02d/%02d/%04d", dayOfMonth, selectedMonth + 1, selectedYear)
-                        fechaEditText.setText(formattedDate) // Especificar el tipo del argumento
-                    },
-                    year,
-                    month,
-                    day
-                )
-                datePickerDialog.show() // Llamar a show() en el objeto datePickerDialog
-            } else if (!hasFocus && fechaEditText.text.toString().isNotBlank()) {
-                // Validar la fecha cuando el campo pierde el foco y no está vacío
-                if (!isValidDate(fechaEditText.text.toString())) {
-                    fechaTextInputLayout.error ="Fecha inválida"
-                    Toast.makeText(requireContext(), "Fecha inválida", Toast.LENGTH_SHORT).show()
-                } else {
-                    fechaTextInputLayout.error = null
+                datePicker.addOnDismissListener {
+                    isDatePickerOpen = false // Marca el DatePicker como cerrado al cerrarse
                 }
+
+                datePicker.show(parentFragmentManager, "datePicker")
             }
         }
 
-// ... (resto de tu código)
+        // Referencia al RecyclerView
+        val recyclerView: RecyclerView = binding.partesDiariosRecyclerView
 
-//        fechaEditText.setOnFocusChangeListener { _, hasFocus ->if (!hasFocus && fechaEditText.text.toString().isNotBlank()) {
-//            if (!isValidDate(fechaEditText.text.toString())) {
-//                fechaTextInputLayout.error = "Fecha inválida"
-//                // Puedes mostrar un mensaje de alerta aquí si lo deseas, por ejemplo:
-//                Toast.makeText(requireContext(), "Fecha inválida", Toast.LENGTH_SHORT).show()
-//            } else {
-//                fechaTextInputLayout.error = null
-//            }
-//        }
-//        }
+        // Crea una instancia del adaptador
+        val adapter = ParteDiarioAdapter(emptyList()) // Inicialmente la lista está vacía
 
-        // Eliminar si no hay errores
-//        // Configura el comportamiento de estadoAutocomplete
-//        estadoAutocomplete.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
-//            if (hasFocus) {
-//                estadoAutocomplete.showDropDown()
-//            }
-//        }
+        // Configura el RecyclerView
+        recyclerView.adapter = adapter
+        recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        // Observa los datos del ViewModel y actualiza los AutoCompleteTextViews
-//        viewModel.equipos.observe(viewLifecycleOwner) { equipos ->
-//            val adapterEquipos = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, equipos.map { it.interno })
-//            equipoAutocomplete.setAdapter(adapterEquipos)
-//            Log.d("ParteDiario", "Equipos: $equipos")
-//        }
-
-//        viewModel.obras.observe(viewLifecycleOwner) { obras ->
-//            val adapterObras = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, obras.map { it.centro_costo })
-//            obraAutocomplete.setAdapter(adapterObras)
-//            Log.d("ParteDiario", "Obras: $obras")
-//        }
-//
-//        viewModel.estados.observe(viewLifecycleOwner) { estados ->
-//            val adapterEstados = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, estados.map { it.nombre })
-//            estadoAutocomplete.setAdapter(adapterEstados)
-//            Log.d("ParteDiario", "Estados: $estados")
-//        }
+        // Observa los partes diarios del ViewModel y actualiza el adaptador
+        viewModel.partesDiarios.observe(viewLifecycleOwner) { partesDiarios ->
+            // Crea una nueva instancia del adaptador con la nueva lista
+            val adapter = ParteDiarioAdapter(partesDiarios)
+            recyclerView.adapter = adapter
+            adapter.notifyDataSetChanged()
+        }
 
         // Listener para el botón guardar
         guardarButton.setOnClickListener {
@@ -318,33 +259,75 @@ class ParteDiarioFragment : Fragment() {
             val obraCentroCosto = selectedObraText.split(" - ").firstOrNull() ?: ""
             val selectedObra = viewModel.obras.value?.find { it.centro_costo.trim().lowercase() == obraCentroCosto.trim().lowercase() }
 
-//            val selectedEstadoText = binding.estadoAutocomplete.text.toString()
-//            val estadoNombre = selectedEstadoText.split(" - ").firstOrNull() ?: ""
-//            val selectedEstado = viewModel.estados.value?.find { it.nombre.trim().lowercase() == estadoNombre.trim().lowercase() }
-
-
+            // Obtiene el ID del usuario del Intent
+            val userId = requireActivity().intent.getIntExtra("id", -1) // -1 como valor predeterminado si no se encuentra
 
             if (validarCampos()) {
                 // Guardar los datos
                 val parteDiario = ParteDiario(
                     fecha = fechaEditText.text.toString(),
                     equipoId = selectedEquipo?.id ?: 0, // Usar operador de acceso seguro o valor predeterminado
-                    horasInicio = horasInicioEditText.text.toString(),
-                    horasFin = horasFinEditText.text.toString(),
-                    horasTrabajadas = horasTrabajadasEditText.text.toString().toDoubleOrNull() ?: 0.0,
+                    horasInicio = horasInicioEditText.text.toString().toInt(),
+                    horasFin = horasFinEditText.text.toString().toInt(),
+                    horasTrabajadas = horasTrabajadasEditText.text.toString().toInt(),
                     observaciones = observacionesEditText.text.toString(),
                     obraId = selectedObra?.id ?: 0,
-                    // Crear un adaptar para obtener el ID del usuario actual
-                    userCreated = 1, // Adaptar para obtener el ID del usuario actual
+                    userCreated = userId, // Usa el ID del usuario obtenido
                     estadoId = 1 // "Eatado:Activo" // selectedEstado?.id ?: 0
                 )
                 viewModel.guardarParteDiario(parteDiario)
+                deshabilitarFormulario()
+                fab.visibility = View.VISIBLE
             }
 
         }
 
+        fab.setImageResource(R.drawable.ic_add)
+        fab.setBackgroundTintList(ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.blue)))
+        fab.setImageTintList(ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.white)))
+
+        fab.setOnClickListener {
+            limpiarFormulario()
+        }
+
+        // Listener para el botón guardar
+        nuevoParteButton.setOnClickListener {
+            limpiarFormulario()
+        }
+
         // Inicia la carga de datos desde el ViewModel
         viewModel.cargarDatos()
+    }
+
+    private fun limpiarFormulario() {
+        binding.fechaEditText.text?.clear()
+        binding.equipoAutocomplete.text?.clear()
+        binding.obraAutocomplete.text?.clear()
+        binding.horasInicioEditText.text?.clear()
+        binding.horasFinEditText.text?.clear()
+        binding.observacionesEditText.text?.clear()
+
+        binding.fechaEditText.isEnabled = true
+        binding.equipoAutocomplete.isEnabled = true
+        binding.horasInicioEditText.isEnabled = true
+        binding.horasFinEditText.isEnabled = true
+        binding.observacionesEditText.isEnabled = true
+        binding.obraAutocomplete.isEnabled = true
+        binding.guardarButton.isEnabled = true
+        // Habilita el ícono del calendario
+        binding.fechaTextInputLayout.isEndIconVisible = true
+    }
+
+    private fun deshabilitarFormulario() {
+        binding.fechaEditText.isEnabled = false
+        binding.equipoAutocomplete.isEnabled = false
+        binding.horasInicioEditText.isEnabled = false
+        binding.horasFinEditText.isEnabled = false
+        binding.observacionesEditText.isEnabled = false
+        binding.obraAutocomplete.isEnabled = false
+        binding.guardarButton.isEnabled = false
+        // Deshabilita el ícono del calendario
+        binding.fechaTextInputLayout.isEndIconVisible = false
     }
 
     private fun validarCampos(): Boolean {
@@ -388,15 +371,6 @@ class ParteDiarioFragment : Fragment() {
         } else {
             binding.obraTextInputLayout.isErrorEnabled = false
         }
-        // Eliminar si no hay errores
-        // Se comenta porque la idea es que el estado se ingrese como activo, predeterminada y automaticamente
-//        if (binding.estadoAutocomplete.text.isNullOrEmpty()) {
-//            binding.estadoTextInputLayout.error = "Campo requerido"
-//            binding.estadoTextInputLayout.isErrorEnabled = true
-//            camposValidos = false
-//        } else {
-//            binding.estadoTextInputLayout.isErrorEnabled = false
-//        }
 
         if (!camposValidos) {
             Toast.makeText(requireContext(), "Por favor, complete todos los campos requeridos", Toast.LENGTH_SHORT).show()
@@ -404,34 +378,6 @@ class ParteDiarioFragment : Fragment() {
         }
 
         return camposValidos
-    }
-
-    private fun isValidDate(fecha: String): Boolean {
-        val parts = fecha.split("/")
-        if (parts.size != 3) return false
-        val dia = parts[0].toIntOrNull() ?:return false
-        val mes = parts[1].toIntOrNull() ?: return false
-        val anio = parts[2].toIntOrNull() ?: return false
-        if (mes !in 1..12) return false
-        if (dia !in 1..daysInMonth(mes, anio)) return false
-        return true
-    }
-
-    private fun daysInMonth(mes: Int, anio: Int): Int {
-        return when (mes) {
-            2 -> if (isLeapYear(anio)) 29 else 28
-            4, 6, 9,11 -> 30
-            else -> 31
-        }
-    }
-
-    private fun isLeapYear(year: Int): Boolean {
-        return when {
-            year % 400 == 0 -> true
-            year % 100 == 0 -> false
-            year % 4 == 0 -> true
-            else -> false
-        }
     }
 
     private fun calcularHorasTrabajadas() {
@@ -452,6 +398,8 @@ class ParteDiarioFragment : Fragment() {
             binding.horasTrabajadasEditText.setText("")
         }
     }
+
+
 
     override fun onDestroyView() {
         super.onDestroyView()

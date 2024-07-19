@@ -21,5 +21,6 @@
             android:id="@+id/nav_partediario"
             android:icon="@drawable/ic_menu_slideshow"
             android:title="@string/menu_partediario" />
+
     </group>
 </menu>

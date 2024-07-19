@@ -6,6 +6,7 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gestionequipos.data.Equipo
+import com.example.gestionequipos.data.ListarPartesDiarios
 //import com.example.gestionequipos.data.Estado
 import com.example.gestionequipos.data.Obra
 import com.example.gestionequipos.data.ParteDiario
@@ -18,6 +19,7 @@ import kotlinx.coroutines.withContext
 import okhttp3.*
 import java.io.IOException
 import com.example.gestionequipos.ui.partediario.Event
+import com.google.gson.GsonBuilder
 import java.util.concurrent.TimeUnit
 
 class ParteDiarioViewModel : ViewModel() {
@@ -32,6 +34,9 @@ class ParteDiarioViewModel : ViewModel() {
 
     private val _mensaje = MutableLiveData<Event<String?>>()
     val mensaje: LiveData<Event<String?>> = _mensaje
+
+    private val _partesDiarios = MutableLiveData<List<ListarPartesDiarios>>()
+    val partesDiarios:LiveData<List<ListarPartesDiarios>> = _partesDiarios
 
     fun setMensaje(mensaje: String?) {
         _mensaje.value = Event(mensaje)
@@ -68,6 +73,13 @@ class ParteDiarioViewModel : ViewModel() {
         }
     }
 
+    fun cargarPartesDiarios() {
+        viewModelScope.launch {
+            val partesDiarios = obtenerPartesDiariosDesdeBaseDeDatos()
+            _partesDiarios.value = partesDiarios
+        }
+    }
+
     private fun convertirFecha(fechaOriginal: String): String {
         val parts = fechaOriginal.split("/")
         return if (parts.size == 3) {
@@ -77,21 +89,18 @@ class ParteDiarioViewModel : ViewModel() {
         }
     }
 
-
     private val client = OkHttpClient.Builder()
-        .connectTimeout(15, TimeUnit.SECONDS)
-        .readTimeout(15, TimeUnit.SECONDS)
-        .writeTimeout(15, TimeUnit.SECONDS)
+        .connectTimeout(30, TimeUnit.SECONDS)
+        .readTimeout(30, TimeUnit.SECONDS)
+        .writeTimeout(30, TimeUnit.SECONDS)
         .build()
 
     private suspend fun guardarParteDiarioEnBaseDeDatos(parteDiario: ParteDiario): Boolean {
         return withContext(Dispatchers.IO) {
-//            val client = OkHttpClient()
             val requestBody = FormBody.Builder()
                 .add("fecha", parteDiario.fecha)
-                .add("equipoId", parteDiario.equipoId.toString())
-                .add("horasInicio", parteDiario.horasInicio)
-                .add("horasFin", parteDiario.horasFin)
+                .add("equipoId", parteDiario.equipoId.toString()).add("horasInicio", parteDiario.horasInicio.toString()) // Convierte a String
+                .add("horasFin", parteDiario.horasFin.toString()) // Convierte a String
                 .add("horasTrabajadas", parteDiario.horasTrabajadas.toString())
                 .add("observaciones", parteDiario.observaciones ?: "")
                 .add("obraId", parteDiario.obraId.toString())
@@ -116,17 +125,16 @@ class ParteDiarioViewModel : ViewModel() {
     private suspend fun obtenerEquiposDesdeBaseDeDatos(): List<Equipo> {
         val url = baseUrl + "get_equipos.php"
         val request = Request.Builder().url(url).build()
-//        val client = OkHttpClient()
         return withContext(Dispatchers.IO) {
             try {
                 val response = client.newCall(request).execute()
                 if (response.isSuccessful) {
-                    val json = response.body()?.string()?: ""
+                    val json = response.body?.string()?: ""
                     val gson = Gson()
                     val type = object : TypeToken<List<Equipo>>() {}.type
                     gson.fromJson(json, type) ?: emptyList()
                 } else {
-                    Log.e("Error", "Error al obtener equipos: Código de estado HTTP ${response.code()}") // Usamos response.code()
+                    Log.e("Error", "Error al obtener equipos: Código de estado HTTP ${response.code}") // Usamos response.code()
                     emptyList()
                 }
             } catch (e: Exception) {Log.e("Error", "Error al obtener equipos: ${e.message}")
@@ -139,17 +147,16 @@ class ParteDiarioViewModel : ViewModel() {
         val url = baseUrl + "get_obras.php"
 
         val request = Request.Builder().url(url).build()
-//        val client = OkHttpClient()
         return withContext(Dispatchers.IO) {
             try {
                 val response = client.newCall(request).execute()
                 if (response.isSuccessful) {
-                    val json = response.body()?.string() ?: ""
+                    val json = response.body?.string() ?: ""
                     val gson = Gson()
                     val type = object : TypeToken<List<Obra>>() {}.type
                     gson.fromJson(json, type) ?: emptyList()
                 } else {
-                    Log.e("Error", "Error al obtener obras: Código de estado HTTP ${response.code()}") // Usamos response.code()
+                    Log.e("Error", "Error al obtener obras: Código de estado HTTP ${response.code}") // Usamos response.code()
                     emptyList()
                 }
             } catch (e: Exception) {
@@ -157,5 +164,44 @@ class ParteDiarioViewModel : ViewModel() {
                 emptyList()
             }
         }
+    }
+
+    private suspend fun obtenerPartesDiariosDesdeBaseDeDatos(): List<ListarPartesDiarios> {
+        val url = baseUrl + "get_partes_diarios.php" // Reemplaza con la URL de tu archivo PHP
+
+        val request = Request.Builder().url(url).build()
+        return withContext(Dispatchers.IO) {
+            try {
+                val response = client.newCall(request).execute()
+                if (response.isSuccessful) {
+                    val json = response.body?.string() ?: ""
+                    Log.d("ParteDiario", "JSON recibido: $json") // Agrega este log
+
+                    // Crea una instancia de Gson con el modo lenient habilitado
+                    val gson = GsonBuilder().setLenient().create()
+
+                    val type = object : TypeToken<List<ListarPartesDiarios>>() {}.type
+                    val listarPartesDiarios: List<ListarPartesDiarios> = gson.fromJson(json, type) ?: emptyList()
+
+                    // Mapea los datos de ListarPartesDiarios a ParteDiario si lo necesitas
+                    // ... (tu código de mapeo si es necesario)
+
+                    listarPartesDiarios // Devuelve la lista de ListarPartesDiarios
+                } else {
+                    Log.e("Error", "Error al obtener partes diarios: Código de estado HTTP ${response.code}")
+                    emptyList()
+                }
+            } catch (e: Exception) {
+                Log.e("Error", "Error al obtener partes diarios: ${e.message}")
+                emptyList()
+            }
+        }
+    }
+
+    fun filtrarPartesDiarios(equipo: String, fecha: String): List<ListarPartesDiarios> {
+        return _partesDiarios.value?.filter { parteDiario ->
+            (equipo == "Todos" || parteDiario.interno == equipo) &&
+                    (fecha.isEmpty() || parteDiario.fecha == fecha)
+        } ?: emptyList()
     }
 }

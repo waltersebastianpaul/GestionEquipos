@@ -1,11 +1,12 @@
 package com.example.gestionequipos.data
 
 data class ParteDiario(
-    val id: Int = 0,val fecha: String,
+    val id_parte_diario: Int = 0,
+    val fecha: String,
     val equipoId: Int,
-    val horasInicio: String,
-    val horasFin: String,
-    val horasTrabajadas: Double,
+    val horasInicio: Int,
+    val horasFin: Int,
+    val horasTrabajadas: Int,
     val observaciones: String?,
     val obraId: Int,
     val userCreated: Int,
