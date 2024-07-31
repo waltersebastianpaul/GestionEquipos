@@ -23,7 +23,7 @@ class MyApplication : Application() {
         val appDataViewModel = ViewModelProvider(viewModelStoreOwner, ViewModelProvider.AndroidViewModelFactory(this)).get(AppDataViewModel::class.java)
         Log.d("MyApplication", "onCreate: ViewModel creado")
 
-        appDataViewModel.cargarDatosIniciales()
+        appDataViewModel.cargarDatos()
         Log.d("MyApplication", "onCreate: Datos iniciales cargados")
     }
 

@@ -12,14 +12,14 @@ import retrofit2.http.GET
 
 interface GestionEquiposApi {
 
-    @GET("equipos")
+    @GET("get_equipos.php") // Ruta corregida
     suspend fun getEquipos(): List<Equipo>
 
-    @GET("obras")
+    @GET("get_obras.php") // Ruta corregida
     suspend fun getObras(): List<Obra>
 
     companion object {
-        private const val BASE_URL = "https://adminobr.000webhostapp.com/" // Reemplaza con la URL de tu API
+        private const val BASE_URL = "https://adminobr.000webhostapp.com/" // URL base corregida
 
         fun create(application: Application): GestionEquiposApi {
             val logging = HttpLoggingInterceptor()

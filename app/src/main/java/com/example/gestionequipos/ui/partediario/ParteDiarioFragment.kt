@@ -177,17 +177,19 @@ class ParteDiarioFragment : Fragment() {
         val appDataViewModel: AppDataViewModel by activityViewModels()
 
         appDataViewModel.equipos.observe(viewLifecycleOwner) { equipos ->
-            Log.d("ParteDiarioFragment", "Equipos recibidos: $equipos")
-            val equipoStrings = equipos.map { "${it.interno} - ${it.descripcion}" }
-            val adapterEquipos = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, equipoStrings)
-            binding.equipoAutocomplete.setAdapter(adapterEquipos)
+            if (!equipos.isNullOrEmpty()) {
+                val equipoStrings = equipos.map{ "${it.interno} - ${it.descripcion}" }
+                val adapterEquipos = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, equipoStrings)
+                binding.equipoAutocomplete.setAdapter(adapterEquipos)
+            }
         }
 
         appDataViewModel.obras.observe(viewLifecycleOwner) { obras ->
-            Log.d("ParteDiarioFragment", "Obras recibidas: $obras")
-            val obraStrings = obras.map { "${it.centro_costo} - ${it.nombre}" }
-            val adapterObras = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, obraStrings)
-            binding.obraAutocomplete.setAdapter(adapterObras)
+            if (!obras.isNullOrEmpty()) {
+                val obraStrings = obras.map { "${it.centro_costo} - ${it.nombre}" }
+                val adapterObras = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, obraStrings)
+                binding.obraAutocomplete.setAdapter(adapterObras)
+            }
         }
 
 
