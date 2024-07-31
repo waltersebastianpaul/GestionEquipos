@@ -24,15 +24,9 @@ class AppDataViewModel(application: Application) : AndroidViewModel(application)
     fun cargarDatos() {
         viewModelScope.launch {
             try {
-                val cachedEquipos = equipos.value
-                val cachedObras = obras.value
-
-                if (cachedEquipos == null || cachedObras == null) {
-                    Log.d("AppDataViewModel", "Datos cargados desde la caché: equipos = $cachedEquipos, obras = $cachedObras")
-                    _equipos.value = gestionEquiposApi.getEquipos()
-                    _obras.value = gestionEquiposApi.getObras()
-                }
-            }catch (e: Exception) {
+                _equipos.value = gestionEquiposApi.getEquipos()
+                _obras.value = gestionEquiposApi.getObras()
+            } catch (e: Exception) {
                 Log.e("AppDataViewModel", "Error al cargar datos: ${e.message}")
                 // Mostrar un mensaje de error al usuario
             }

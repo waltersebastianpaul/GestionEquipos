@@ -7,6 +7,7 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.widget.TextView
+import androidx.activity.viewModels
 import com.google.android.material.navigation.NavigationView
 import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
@@ -17,6 +18,8 @@ import androidx.drawerlayout.widget.DrawerLayout
 import androidx.appcompat.app.AppCompatActivity
 import com.example.gestionequipos.auth.LoginActivity
 import com.example.gestionequipos.databinding.ActivityMainBinding
+import com.example.gestionequipos.ui.appdata.AppDataViewModel
+import com.example.gestionequipos.ui.autocomplete.AutocompleteViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class MainActivity : AppCompatActivity() {
@@ -95,5 +98,11 @@ class MainActivity : AppCompatActivity() {
 
     fun setFabIcon(resourceId: Int) {
         fab.setImageResource(resourceId)
+    }
+
+    override fun onResume() {
+        super.onResume()
+        val appDataViewModel: AppDataViewModel by viewModels()
+        appDataViewModel.cargarDatos()
     }
 }

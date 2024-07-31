@@ -8,65 +8,39 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.gestionequipos.data.Equipo
 import com.example.gestionequipos.data.Obra
-import kotlinx.coroutines.Dispatchers
+import com.example.gestionequipos.data.remote.GestionEquiposApi
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 class AutocompleteViewModel(application: Application) : AndroidViewModel(application) {
+
+    private val _equipos = MutableLiveData<List<Equipo>>()
+    val equipos: LiveData<List<Equipo>> =_equipos
+
     private val _obras = MutableLiveData<List<Obra>>()
     val obras: LiveData<List<Obra>> = _obras
 
-    private val _equipos = MutableLiveData<List<Equipo>>()
-    val equipos: LiveData<List<Equipo>> = _equipos
-
-    private val _error = MutableLiveData<String?>()
-    val error: LiveData<String?> = _error
+    private val gestionEquiposApi: GestionEquiposApi = GestionEquiposApi.create(application)
 
     init {
+        Log.d("AutocompleteViewModel", "Inicializando ViewModel")
         cargarDatos()
     }
 
     fun cargarDatos() {
         viewModelScope.launch {
+            Log.d("AutocompleteViewModel", "Cargando datos...")
             try {
-                // Limpia las listas
-                _obras.value = emptyList()
-                _equipos.value = emptyList()
+                val equipos = gestionEquiposApi.getEquipos()
+                Log.d("AutocompleteViewModel", "Equipos cargados: $equipos")
+                _equipos.value = equipos
 
-                Log.d("AutocompleteViewModel", "Cargando obras...")
-                val obrasResult = withContext(Dispatchers.IO) {
-                    try {
-                        AutocompleteRepository.getObras(getApplication())
-                    } catch (e: Exception) {
-                        Log.e("AutocompleteViewModel", "Error al obtener obras: ${e.message}")
-                        null
-                    }
-                }
-                _obras.value = obrasResult ?: emptyList()
-                Log.d("AutocompleteViewModel", "Obras cargadas: ${_obras.value}")
-
-                Log.d("AutocompleteViewModel", "Cargando equipos...")
-                val equiposResult = withContext(Dispatchers.IO) {
-                    try {
-                        AutocompleteRepository.getEquipos(getApplication())
-                    } catch (e: Exception) {
-                        Log.e("AutocompleteViewModel", "Error al obtener equipos: ${e.message}")
-                        null
-                    }
-                }
-                _equipos.value = equiposResult ?: emptyList()
-                Log.d("AutocompleteViewModel", "Equipos cargados: ${_equipos.value}")
-
-                if (_obras.value.isNullOrEmpty() || _equipos.value.isNullOrEmpty()) {
-                    _error.value = "Error al cargar datos: obras o equipos están vacíos."
-                } else {
-                    _error.value = null
-                }
+                val obras = gestionEquiposApi.getObras()
+                Log.d("AutocompleteViewModel", "Obras cargadas: $obras")
+                _obras.value = obras
             } catch (e: Exception) {
                 Log.e("AutocompleteViewModel", "Error al cargar datos: ${e.message}")
-                _error.value = "Error al cargar los datos: ${e.message}"
+                // Mostrar un mensaje de error al usuario, por ejemplo, con un Toast o Snackbar
             }
         }
     }
-
 }

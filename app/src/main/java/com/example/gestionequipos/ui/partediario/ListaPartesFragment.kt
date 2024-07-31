@@ -28,7 +28,6 @@ import com.example.gestionequipos.R
 import com.example.gestionequipos.databinding.FragmentListaPartesBinding
 import com.example.gestionequipos.ui.appdata.AppDataViewModel
 import com.example.gestionequipos.ui.autocomplete.AutocompleteViewModel
-import com.example.gestionequipos.utils.ProgressDialogFragment
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
@@ -243,40 +242,17 @@ class ListaPartesFragment : Fragment() {
         autocompletesCargados = false
         partesDiariosCargados = false
 
-        val progressDialog = ProgressDialogFragment.show(childFragmentManager)
-
         // Verifica si las listas están vacías
         if (autocompleteViewModel.obras.value.isNullOrEmpty() ||
             autocompleteViewModel.equipos.value.isNullOrEmpty()) {
             autocompleteViewModel.cargarDatos()
         } else {
             autocompletesCargados = true
-            verificarYDesactivarProgressDialog(progressDialog)
         }
 
         // Inicia la cargade datos
         viewModel.cargarPartesDiarios {
             partesDiariosCargados = true
-            verificarYDesactivarProgressDialog(progressDialog)
-        }
-
-        // Establece un tiempo límite de 5 segundos (5000 milisegundos)
-        Handler(Looper.getMainLooper()).postDelayed({
-            if (progressDialog.isVisible) {
-                progressDialog.dismiss()
-                // Mostrar un Snackbar con opción de reintento
-                Snackbar.make(requireView(), "Error al cargar los datos", Snackbar.LENGTH_INDEFINITE)
-                    .setAction("Reintentar") {
-                        onResume() // Vuelve a llamar a onResume para reintentar la carga
-                    }
-                    .show()
-            }
-        }, 5000)
-    }
-
-    private fun verificarYDesactivarProgressDialog(progressDialog: ProgressDialogFragment) {
-        if (autocompletesCargados && partesDiariosCargados) {
-            progressDialog.dismiss()
         }
     }
 

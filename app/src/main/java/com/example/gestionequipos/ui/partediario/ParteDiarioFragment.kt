@@ -31,7 +31,6 @@ import com.example.gestionequipos.data.ParteDiario
 import com.example.gestionequipos.databinding.FragmentParteDiarioBinding
 import com.example.gestionequipos.ui.appdata.AppDataViewModel
 import com.example.gestionequipos.ui.autocomplete.AutocompleteViewModel
-import com.example.gestionequipos.utils.ProgressDialogFragment
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
@@ -65,12 +64,14 @@ class ParteDiarioFragment : Fragment() {
         val appDataViewModel: AppDataViewModel by activityViewModels()
 
         appDataViewModel.equipos.observe(viewLifecycleOwner) { equipos ->
+            Log.d("ParteDiarioFragment", "Equipos recibidos en el fragmento: $equipos")
             val equipoStrings = equipos.map { "${it.interno} - ${it.descripcion}" }
             val adapterEquipos =ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, equipoStrings)
             binding.equipoAutocomplete.setAdapter(adapterEquipos)
         }
 
         appDataViewModel.obras.observe(viewLifecycleOwner) { obras ->
+            Log.d("ParteDiarioFragment", "Obras recibidas en el fragmento: $obras")
             val obraStrings = obras.map { "${it.centro_costo} - ${it.nombre}" }
             val adapterObras = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, obraStrings)
             binding.obraAutocomplete.setAdapter(adapterObras)
@@ -240,8 +241,6 @@ class ParteDiarioFragment : Fragment() {
             val userId = requireActivity().intent.getIntExtra("id", -1) // -1 como valor predeterminado si no se encuentra
 
             if (validarCampos()) {
-                val progressDialog = ProgressDialogFragment.show(childFragmentManager) // Mostrar ProgressDialog
-
                 // Guardar los datos
                 val parteDiario = ParteDiario(
                     fecha = fechaEditText.text.toString(),
@@ -256,7 +255,6 @@ class ParteDiarioFragment : Fragment() {
                 )
 
                 viewModel.guardarParteDiario(parteDiario) { success -> // Agrega una lambda como callback
-                    progressDialog.dismiss() // Cierra el ProgressDialog
                     if (success) {
                         deshabilitarFormulario()
                         fab.visibility = View.VISIBLE
@@ -272,19 +270,6 @@ class ParteDiarioFragment : Fragment() {
                         Toast.makeText(requireContext(), mensaje, Toast.LENGTH_SHORT).show()
                     }
                 }
-
-                // Establece un tiempo límite de 5 segundos (5000 milisegundos)
-                Handler(Looper.getMainLooper()).postDelayed({
-                    if (progressDialog.isVisible) {
-                        progressDialog.dismiss()
-                        // Mostrar un Snackbar con opción de reintento
-                        Snackbar.make(requireView(), "Error al guardar el parte diario", Snackbar.LENGTH_INDEFINITE)
-                            .setAction("Reintentar") {
-                                guardarButton.performClick() // Vuelve a intentar guardar
-                            }
-                            .show()
-                    }
-                }, 5000)
             }
         }
 
@@ -302,8 +287,6 @@ class ParteDiarioFragment : Fragment() {
             fab.visibility = View.GONE
         }
 
-        val progressDialog = ProgressDialogFragment.show(childFragmentManager)
-
         // Inicia la carga de datos desde el ViewModel
 //        // Verifica si las listas están vacías
 //        if (autocompleteViewModel.obras.value.isNullOrEmpty() ||
@@ -311,15 +294,23 @@ class ParteDiarioFragment : Fragment() {
 //            autocompleteViewModel.cargarDatos()
 //        }
 
+//        val autocompleteViewModel: AutocompleteViewModel by activityViewModels()
+
         autocompleteViewModel.equipos.observe(viewLifecycleOwner) { equipos ->
+            Log.d("ParteDiarioFragment", "Equipos recibidos en el fragmento: $equipos")
             if (!equipos.isNullOrEmpty()) {
-                progressDialog.dismiss()
+                val equipoStrings = equipos.map { "${it.interno} - ${it.descripcion}" }
+                val adapterEquipos = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, equipoStrings)
+                binding.equipoAutocomplete.setAdapter(adapterEquipos)
             }
         }
 
         autocompleteViewModel.obras.observe(viewLifecycleOwner) { obras ->
+            Log.d("ParteDiarioFragment", "Obras recibidas en el fragmento: $obras")
             if (!obras.isNullOrEmpty()) {
-                progressDialog.dismiss()
+                val obraStrings = obras.map { "${it.centro_costo} - ${it.nombre}" }
+                val adapterObras = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, obraStrings)
+                binding.obraAutocomplete.setAdapter(adapterObras)
             }
         }
     }
