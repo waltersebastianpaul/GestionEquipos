@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">GestionEquipos</string>
+    <string name="app_name">Gestion de Equipos</string>
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
     <string name="nav_header_title">Android Studio</string>
@@ -27,7 +27,7 @@
 
     <string name="recuperar_contrasena">¿Olvidaste tu contraseña?</string>
     <string name="menu_login">Login</string>
-    <string name="etiqueta_fab">Nuevo Parte</string>
+    <string name="etiqueta_fab">Nuevo</string>
 
     <string name="content_description_equipo">Seleccionar equipo</string>
 

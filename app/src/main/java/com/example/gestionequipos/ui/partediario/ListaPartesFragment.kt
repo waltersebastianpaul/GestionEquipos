@@ -1,8 +1,12 @@
 package com.example.gestionequipos.ui.partediario
 
+import android.app.DatePickerDialog
 import android.content.res.ColorStateList
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.text.Editable
+import android.text.InputFilter
 import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
@@ -10,22 +14,27 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
-import android.widget.DatePicker
+import android.widget.Button
+import android.widget.Toast
+import androidx.compose.material3.Snackbar
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
+import androidx.lifecycle.distinctUntilChanged
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.gestionequipos.R
 import com.example.gestionequipos.databinding.FragmentListaPartesBinding
-import com.google.android.material.datepicker.MaterialDatePicker
+import com.example.gestionequipos.ui.autocomplete.AutocompleteViewModel
+import com.example.gestionequipos.utils.ProgressDialogFragment
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
-import com.google.type.Date
 import java.text.SimpleDateFormat
-import java.util.*
-import android.widget.EditText // Importa EditText
+import java.util.Calendar
+import java.util.Locale
 
 class ListaPartesFragment : Fragment() {
 
@@ -39,6 +48,10 @@ class ListaPartesFragment : Fragment() {
     private lateinit var filtroFechaTextInputLayout: TextInputLayout
     private lateinit var filtroFechaEditText: TextInputEditText
 
+    private var isDatePickerOpen = false // Variable para controlar si el DatePicker está abierto
+
+    private val autocompleteViewModel: AutocompleteViewModel by activityViewModels()
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -50,11 +63,6 @@ class ListaPartesFragment : Fragment() {
         filtroEquipoTextInputLayout = binding.filtroEquipoTextInputLayout
         filtroFechaTextInputLayout = binding.filtroFechaTextInputLayout
         filtroFechaEditText = binding.filtroFechaEditText
-
-        // Configura el listener para el ícono del calendario
-        filtroFechaTextInputLayout.setEndIconOnClickListener {
-            mostrarDatePicker()
-        }
 
         return binding.root
     }
@@ -69,14 +77,29 @@ class ListaPartesFragment : Fragment() {
         val fab: FloatingActionButton = requireActivity().findViewById(R.id.fab)
         fab.visibility = View.VISIBLE
 
-        viewModel.equipos.observe(viewLifecycleOwner) { equipos ->
-            val equipoStrings = equipos.map { "${it.interno} - ${it.descripcion}" }.toTypedArray()
-            val adapterEquipos = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, equipoStrings)
-            filtroEquipoAutocomplete.setAdapter(adapterEquipos)
-        }
+        // Observa los datos del ViewModel y configura los adapters
+        autocompleteViewModel.equipos.distinctUntilChanged()
+            .observe(viewLifecycleOwner) { equipos ->
+                val equipoStrings =
+                    equipos.map { "${it.interno} - ${it.descripcion}" }.toTypedArray()
+                val adapterEquipos = ArrayAdapter(
+                    requireContext(),
+                    android.R.layout.simple_dropdown_item_1line,
+                    equipoStrings
+                )
+                binding.filtroEquipoAutocomplete.setAdapter(adapterEquipos)
+                Log.d("ParteDiario", "Equipos: $equipos")
+
+                setEditTextToUppercase(filtroEquipoAutocomplete)
+            }
 
         // Inicia la carga de datos desde el ViewModel
-        viewModel.cargarDatos() // <-- Agrega esta línea
+        // Verifica si las listas están vacías
+        if (autocompleteViewModel.obras.value.isNullOrEmpty() ||
+            autocompleteViewModel.equipos.value.isNullOrEmpty()
+        ) {
+            autocompleteViewModel.cargarDatos()
+        }
 
         // Observa los datos del ViewModel y configura el adaptador del RecyclerView
         viewModel.partesDiarios.observe(viewLifecycleOwner) { partesDiarios ->
@@ -85,67 +108,155 @@ class ListaPartesFragment : Fragment() {
             recyclerView.adapter = adapter
         }
 
-        // Configura los listeners para el filtrado
+        // TextWatcher para filtroEquipoAutocomplete
         filtroEquipoAutocomplete.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
 
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {
+                if (s.toString().isEmpty()) {
+                    filtroEquipoAutocomplete.dismissDropDown()
+                } else {
+                    filtroEquipoAutocomplete.showDropDown()
+                }
+            }
 
             override fun afterTextChanged(s: Editable?) {
-                aplicarFiltro()
+                if (filtroEquipoTextInputLayout.isErrorEnabled) {
+                    if (s.isNullOrEmpty()) {
+                        filtroEquipoTextInputLayout.error = "Campo requerido"
+                    } else {
+                        filtroEquipoTextInputLayout.isErrorEnabled = false
+                    }
+                }
+                aplicarFiltro() // Llama a aplicarFiltro() después de cada cambio en el texto
             }
         })
 
-        // Inicia la carga de datos desde el ViewModel (solo una vez)
-        viewModel.cargarPartesDiarios()
+        // Configura el botón para limpiar todos los filtros
+        val clearAllFiltersButton: Button = binding.root.findViewById(R.id.clearAllFiltersButton)
+        clearAllFiltersButton.setOnClickListener {
+            filtroEquipoAutocomplete.setText("")
+            filtroFechaEditText.setText("")
+            aplicarFiltro()
+        }
 
         // Configura el FloatingActionButton
         fab.setImageResource(R.drawable.ic_add)
-        fab.backgroundTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.blue))
-        fab.imageTintList = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.white))
+        fab.backgroundTintList =
+            ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
+        fab.imageTintList =
+            ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.white))
 
         fab.setOnClickListener {
             findNavController().navigate(R.id.nav_partediario)
         }
 
-        filtroFechaTextInputLayout.setEndIconOnClickListener {
-            // Muestra el DatePickerDialog o MaterialDatePicker aquí
-            mostrarDatePicker()
+        // Configura el OnClickListener para filtroFechaEditText
+        filtroFechaEditText.setOnClickListener {
+            val locale = Locale.getDefault() // Crea un nuevo objeto Locale con el idioma español
+            val calendar = Calendar.getInstance(locale) // Usa el locale para el Calendar
+
+            // Obtener la fecha del EditText si está presente
+            val dateString = filtroFechaEditText.text.toString()
+            if (dateString.isNotBlank()) {val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                val date = formatter.parse(dateString)
+                calendar.time = date
+            }
+
+            val year = calendar.get(Calendar.YEAR)
+            val month = calendar.get(Calendar.MONTH)
+            val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+            val datePickerDialog = DatePickerDialog(
+                requireContext(),
+                { _, year, month, dayOfMonth ->
+                    val formattedDate = String.format("%02d/%02d/%04d", dayOfMonth, month + 1, year)
+                    filtroFechaEditText.setText(formattedDate)
+                    aplicarFiltro()
+                },
+                year,
+                month,
+                day
+            )
+            datePickerDialog.show()
         }
+
     }
 
-    private fun mostrarDatePicker() {
-        val datePicker = MaterialDatePicker.Builder.datePicker()
-            .setTitleText("Selecciona una fecha")
-            .setSelection(MaterialDatePicker.todayInUtcMilliseconds())
-            .build()
-
-        datePicker.addOnPositiveButtonClickListener { selection ->
-            val simpleDateFormat = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            val fechaFormateada = simpleDateFormat.format(Date(selection)) // Corregido: usa Date(selection)
-            filtroFechaEditText.setText(fechaFormateada)
-            aplicarFiltro() // Aplica el filtro después de seleccionar la fecha
-        }
-
-        datePicker.show(parentFragmentManager, "datePicker")
+    private fun setEditTextToUppercase(editText: AutoCompleteTextView) {
+        editText.filters = arrayOf(InputFilter.AllCaps())
     }
 
-    // Función para aplicar el filtro
     private fun aplicarFiltro() {
         val equipoSeleccionadoText = filtroEquipoAutocomplete.text.toString()
         val equipoInterno = equipoSeleccionadoText.split(" - ").firstOrNull() ?: ""
+        Log.d("ListaPartesFragment", "Equipo seleccionado: $equipoInterno")
 
-        val fechaSeleccionada = filtroFechaEditText.text.toString()
+        val fechaSeleccionadaText = filtroFechaEditText.text.toString()
+        Log.d("ListaPartesFragment", "Fecha seleccionada en el filtro: $fechaSeleccionadaText")
 
-        // Si el campo de equipo está vacío, muestra todos los partes diarios
-        val partesDiariosFiltrados = if (equipoInterno.isBlank()) {
-            viewModel.partesDiarios.value ?: emptyList() // Obtiene todos los partes diarios del ViewModel
+        val fechaSeleccionada = if (fechaSeleccionadaText.isNotBlank()) {
+            val formatoEntrada = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+            val formatoSalida = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val fechaDate = formatoEntrada.parse(fechaSeleccionadaText)
+            val fechaFormateada = formatoSalida.format(fechaDate)
+            Log.d("ListaPartesFragment", "Fecha formateada: $fechaFormateada")
+            fechaFormateada
         } else {
-            viewModel.filtrarPartesDiarios(equipoInterno, fechaSeleccionada)
+            ""
         }
+
+        val partesDiariosFiltrados = viewModel.filtrarPartesDiarios(equipoInterno, fechaSeleccionada)
+        Log.d("ListaPartesFragment", "Número de partes diarios filtrados: ${partesDiariosFiltrados.size}")
 
         val adapter = ParteDiarioAdapter(partesDiariosFiltrados)
         binding.listaPartesRecyclerView.adapter = adapter
+    }
+
+    private var autocompletesCargados = false
+    private var partesDiariosCargados = false
+
+    override fun onResume(){
+        super.onResume()
+
+        autocompletesCargados = false
+        partesDiariosCargados = false
+
+        val progressDialog = ProgressDialogFragment.show(childFragmentManager)
+
+        // Verifica si las listas están vacías
+        if (autocompleteViewModel.obras.value.isNullOrEmpty() ||
+            autocompleteViewModel.equipos.value.isNullOrEmpty()) {
+            autocompleteViewModel.cargarDatos()
+        } else {
+            autocompletesCargados = true
+            verificarYDesactivarProgressDialog(progressDialog)
+        }
+
+        // Inicia la cargade datos
+        viewModel.cargarPartesDiarios {
+            partesDiariosCargados = true
+            verificarYDesactivarProgressDialog(progressDialog)
+        }
+
+        // Establece un tiempo límite de 5 segundos (5000 milisegundos)
+        Handler(Looper.getMainLooper()).postDelayed({
+            if (progressDialog.isVisible) {
+                progressDialog.dismiss()
+                // Mostrar un Snackbar con opción de reintento
+                Snackbar.make(requireView(), "Error al cargar los datos", Snackbar.LENGTH_INDEFINITE)
+                    .setAction("Reintentar") {
+                        onResume() // Vuelve a llamar a onResume para reintentar la carga
+                    }
+                    .show()
+            }
+        }, 5000)
+    }
+
+    private fun verificarYDesactivarProgressDialog(progressDialog: ProgressDialogFragment) {
+        if (autocompletesCargados && partesDiariosCargados) {
+            progressDialog.dismiss()
+        }
     }
 
     override fun onDestroyView() {

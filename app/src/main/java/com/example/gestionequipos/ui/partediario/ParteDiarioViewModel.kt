@@ -1,5 +1,6 @@
 package com.example.gestionequipos.ui.partediario
 
+import android.icu.text.SimpleDateFormat
 import android.util.Log
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -7,19 +8,21 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.gestionequipos.data.Equipo
 import com.example.gestionequipos.data.ListarPartesDiarios
-//import com.example.gestionequipos.data.Estado
 import com.example.gestionequipos.data.Obra
 import com.example.gestionequipos.data.ParteDiario
 import com.google.gson.Gson
+import com.google.gson.GsonBuilder
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import okhttp3.*
+import okhttp3.FormBody
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import retrofit2.HttpException
 import java.io.IOException
-import com.example.gestionequipos.ui.partediario.Event
-import com.google.gson.GsonBuilder
+import java.net.UnknownHostException
+import java.util.Locale
 import java.util.concurrent.TimeUnit
 
 class ParteDiarioViewModel : ViewModel() {
@@ -35,6 +38,12 @@ class ParteDiarioViewModel : ViewModel() {
     private val _mensaje = MutableLiveData<Event<String?>>()
     val mensaje: LiveData<Event<String?>> = _mensaje
 
+    private val _isLoading = MutableLiveData<Boolean>()
+    val isLoading: LiveData<Boolean> = _isLoading
+
+    private val _error =MutableLiveData<Event<String?>>()
+    val error: LiveData<Event<String?>> = _error
+
     private val _partesDiarios = MutableLiveData<List<ListarPartesDiarios>>()
     val partesDiarios:LiveData<List<ListarPartesDiarios>> = _partesDiarios
 
@@ -42,41 +51,63 @@ class ParteDiarioViewModel : ViewModel() {
         _mensaje.value = Event(mensaje)
     }
 
-    fun cargarDatos() {
-        viewModelScope.launch {
-            // Ejecuta las peticiones de red en unhilo secundario (Dispatchers.IO)
-            val equiposDeferred = async(Dispatchers.IO) { obtenerEquiposDesdeBaseDeDatos() }
-            val obrasDeferred = async(Dispatchers.IO) { obtenerObrasDesdeBaseDeDatos() }
+//    fun cargarDatos() {
+//        viewModelScope.launch {
+//            // Ejecuta las peticiones de red en un hilo secundario (Dispatchers.IO)
+//            val equiposDeferred = async(Dispatchers.IO) { obtenerEquiposDesdeBaseDeDatos() }
+//            val obrasDeferred = async(Dispatchers.IO) { obtenerObrasDesdeBaseDeDatos() }
+//
+//            // Espera a que las peticiones finalicen y actualiza los LiveData en el hilo principal
+//            _equipos.value = equiposDeferred.await()
+//            _obras.value = obrasDeferred.await()}
+//    }
 
-            // Espera a que las peticiones finalicen y actualiza los LiveData en el hilo principal
-            _equipos.value = equiposDeferred.await()
-            _obras.value = obrasDeferred.await()}
-    }
+    fun guardarParteDiario(parteDiario: ParteDiario, callback: (Boolean) -> Unit) {
 
-    fun guardarParteDiario(parteDiario: ParteDiario) {
+        _isLoading.value = true
         viewModelScope.launch {
+            try{
             // Convierte la fecha a "aaaa/mm/dd"
+
             val fechaConvertida = convertirFecha(parteDiario.fecha)
 
             // Crea un nuevo objeto ParteDiario con la fecha convertida
             val parteDiarioConvertido = parteDiario.copy(fecha = fechaConvertida)
 
-            val resultado = withContext(Dispatchers.IO) {
-                guardarParteDiarioEnBaseDeDatos(parteDiarioConvertido)
-            }
-            // Maneja el resultado en el hilo principal
-            if (resultado) {
-                _mensaje.value = Event("Parte diario guardado con éxito") // Envuelve el mensaje en un Event
-            } else {
-                _mensaje.value = Event("Error al guardar el parte diario") // Envuelve el mensaje en un Event
+                val resultado = withContext(Dispatchers.IO) {
+                    guardarParteDiarioEnBaseDeDatos(parteDiarioConvertido)
+                }
+                if (resultado) {
+                    _mensaje.value = Event("Parte diario guardado con éxito")
+                    callback(true) // Indicar éxito
+                } else {
+                    _error.value = Event("Error al guardar el parte diario")
+                    callback(false) // Indicar error
+                }
+            } catch (e: HttpException) {
+                _error.value = Event("Error de red: ${e.message}")
+                callback(false) // Indicar error
+            } catch (e: UnknownHostException) {
+                _error.value = Event("No hay conexión a internet: ${e.message}")
+                callback(false) // Indicar error
+            } catch (e: Exception) {
+                _error.value = Event("Error al guardar el parte diario: ${e.message}")
+                callback(false) // Indicar error
+            } finally {
+                _isLoading.value = false
             }
         }
     }
 
-    fun cargarPartesDiarios() {
+    fun cargarPartesDiarios(callback: () -> Unit) {
         viewModelScope.launch {
-            val partesDiarios = obtenerPartesDiariosDesdeBaseDeDatos()
-            _partesDiarios.value = partesDiarios
+            try {
+                val partesDiarios = obtenerPartesDiariosDesdeBaseDeDatos()
+                _partesDiarios.value = partesDiarios
+                callback()
+            } catch (e: Exception) {
+                _error.value = Event("Error al cargar los partes diarios: ${e.message}")
+            }
         }
     }
 
@@ -96,32 +127,42 @@ class ParteDiarioViewModel : ViewModel() {
         .build()
 
     private suspend fun guardarParteDiarioEnBaseDeDatos(parteDiario: ParteDiario): Boolean {
-        return withContext(Dispatchers.IO) {
-            val requestBody = FormBody.Builder()
-                .add("fecha", parteDiario.fecha)
-                .add("equipoId", parteDiario.equipoId.toString()).add("horasInicio", parteDiario.horasInicio.toString()) // Convierte a String
-                .add("horasFin", parteDiario.horasFin.toString()) // Convierte a String
-                .add("horasTrabajadas", parteDiario.horasTrabajadas.toString())
-                .add("observaciones", parteDiario.observaciones ?: "")
-                .add("obraId", parteDiario.obraId.toString())
-                .add("userCreated", parteDiario.userCreated.toString())
-                .add("estadoId", parteDiario.estadoId.toString())
-                .build()
-
-            val request = Request.Builder()
-                .url(baseUrl + "guardar_parte_diario.php")
-                .post(requestBody)
-                .build()
-
+        return withContext(Dispatchers.IO){
             try {
+                val requestBody = FormBody.Builder()
+                    .add("fecha", parteDiario.fecha)
+                    .add("equipoId", parteDiario.equipoId.toString())
+                    .add("horasInicio", parteDiario.horasInicio.toString())
+                    .add("horasFin", parteDiario.horasFin.toString())
+                    .add("horasTrabajadas", parteDiario.horasTrabajadas.toString())
+                    .add("observaciones", parteDiario.observaciones ?: "")
+                    .add("obraId", parteDiario.obraId.toString())
+                    .add("userCreated", parteDiario.userCreated.toString())
+                    .add("estadoId", parteDiario.estadoId.toString())
+                    .build()
+
+                val request = Request.Builder()
+                    .url(baseUrl + "guardar_parte_diario.php")
+                    .post(requestBody)
+                    .build()
+
+                Log.d("ParteDiarioViewModel", "Enviando datos al servidor: ${requestBody.toString()}")
+
+                for (i in 0 until requestBody.size) {
+                    Log.d("ParteDiarioViewModel", "Dato ${i}: ${requestBody.name(i)} = ${requestBody.value(i)}")
+                }
+
                 val response = client.newCall(request).execute()
-                response.isSuccessful // Devuelve true si la petición fue exitosa, false en caso contrario
+
+                Log.d("ParteDiarioViewModel", "Respuesta del servidor: ${response.code} - ${response.body?.string()}")
+
+                response.isSuccessful
             } catch (e: IOException) {
-                false // Devuelve false en caso de error de red
+                Log.e("ParteDiarioViewModel", "Error de red al guardar parte diario: ${e.message}")
+                false
             }
         }
     }
-
     private suspend fun obtenerEquiposDesdeBaseDeDatos(): List<Equipo> {
         val url = baseUrl + "get_equipos.php"
         val request = Request.Builder().url(url).build()
@@ -199,9 +240,35 @@ class ParteDiarioViewModel : ViewModel() {
     }
 
     fun filtrarPartesDiarios(equipo: String, fecha: String): List<ListarPartesDiarios> {
-        return _partesDiarios.value?.filter { parteDiario ->
-            (equipo == "Todos" || parteDiario.interno == equipo) &&
-                    (fecha.isEmpty() || parteDiario.fecha == fecha)
+        Log.d("ParteDiarioViewModel", "Equipo a filtrar: $equipo")
+        Log.d("ParteDiarioViewModel", "Fecha a filtrar: $fecha")
+
+        val formatoFecha = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) // Formato de fecha
+        val fechaFiltroDate = try {
+            formatoFecha.parse(fecha) // Convertir la fecha del filtro a Date
+        } catch (e: Exception) {
+            null // Manejar el caso en que la fecha no sea válida
+        }
+
+        val resultado = _partesDiarios.value?.filter { parteDiario ->
+            val fechaParteDiario = try {
+                formatoFecha.parse(parteDiario.fecha)
+            } catch (e: Exception) {
+                Log.e("ParteDiarioViewModel", "Error al parsear la fecha del parte diario: ${parteDiario.fecha}", e)
+                null
+            }
+
+            val equipoCoincide = equipo.isEmpty() || parteDiario.interno == equipo
+            val fechaCoincide = fechaFiltroDate == null || (fechaParteDiario != null && fechaParteDiario == fechaFiltroDate)
+
+            Log.d("ParteDiarioViewModel", "ParteDiario: ${parteDiario.fecha} - Equipo coincide: $equipoCoincide - Fecha coincide: $fechaCoincide")
+
+            equipoCoincide && fechaCoincide
         } ?: emptyList()
+
+        Log.d("ParteDiarioViewModel", "Partes diarios filtrados: $resultado")
+        return resultado
     }
+
+
 }

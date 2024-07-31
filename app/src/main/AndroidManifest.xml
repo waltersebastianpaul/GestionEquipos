@@ -13,6 +13,7 @@
         android:theme="@style/Theme.GestionEquipos"
         tools:targetApi="31">
 
+
         <activity
             android:name=".auth.LoginActivity"
             android:exported="true">
@@ -25,7 +26,6 @@
         <activity
             android:name=".MainActivity"
             android:exported="false"
-            android:label="@string/app_name"
             android:theme="@style/Theme.GestionEquipos.NoActionBar"
             android:windowSoftInputMode="adjustPan" />
     </application>
