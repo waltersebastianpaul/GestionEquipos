@@ -29,12 +29,6 @@ class ParteDiarioViewModel : ViewModel() {
 
     private val baseUrl = "https://adminobr.000webhostapp.com/" // Reemplaza con tu URL base
 
-    private val _equipos = MutableLiveData<List<Equipo>>()
-    val equipos: LiveData<List<Equipo>> = _equipos
-
-    private val _obras = MutableLiveData<List<Obra>>()
-    val obras: LiveData<List<Obra>> = _obras
-
     private val _mensaje = MutableLiveData<Event<String?>>()
     val mensaje: LiveData<Event<String?>> = _mensaje
 
@@ -268,6 +262,14 @@ class ParteDiarioViewModel : ViewModel() {
 
         Log.d("ParteDiarioViewModel", "Partes diarios filtrados: $resultado")
         return resultado
+    }
+
+    fun setEquipos(equipos: List<Equipo>) {
+        // No necesitas hacer nada aquí, ya que no tienes _equipos
+    }
+
+    fun setObras(obras: List<Obra>) {
+        // No necesitas hacer nada aquí, ya que no tienes _obras
     }
 
 

@@ -29,6 +29,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.gestionequipos.R
 import com.example.gestionequipos.data.ParteDiario
 import com.example.gestionequipos.databinding.FragmentParteDiarioBinding
+import com.example.gestionequipos.ui.appdata.AppDataViewModel
 import com.example.gestionequipos.ui.autocomplete.AutocompleteViewModel
 import com.example.gestionequipos.utils.ProgressDialogFragment
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -44,10 +45,11 @@ class ParteDiarioFragment : Fragment() {
     private var _binding: FragmentParteDiarioBinding? = null
     private val binding get() = _binding!!
 
-    private val viewModel: ParteDiarioViewModel by viewModels()
     private var isDatePickerOpen = false // Variable para controlar si el DatePicker está abierto
     private val autocompleteViewModel: AutocompleteViewModel by activityViewModels()
     private lateinit var fechaEditText: TextInputEditText
+
+    private val viewModel: ParteDiarioViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -59,9 +61,20 @@ class ParteDiarioFragment : Fragment() {
         fechaEditText = binding.fechaEditText
 
         val view = binding.root
-//
-//        // Inicia la carga de datos desde el ViewModel
-//        autocompleteViewModel.cargarDatos()
+
+        val appDataViewModel: AppDataViewModel by activityViewModels()
+
+        appDataViewModel.equipos.observe(viewLifecycleOwner) { equipos ->
+            val equipoStrings = equipos.map { "${it.interno} - ${it.descripcion}" }
+            val adapterEquipos =ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, equipoStrings)
+            binding.equipoAutocomplete.setAdapter(adapterEquipos)
+        }
+
+        appDataViewModel.obras.observe(viewLifecycleOwner) { obras ->
+            val obraStrings = obras.map { "${it.centro_costo} - ${it.nombre}" }
+            val adapterObras = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, obraStrings)
+            binding.obraAutocomplete.setAdapter(adapterObras)
+        }
 
         return view
     }
@@ -161,20 +174,37 @@ class ParteDiarioFragment : Fragment() {
             datePickerDialog.show()
         }
 
-        // Observa los datos del ViewModel y configura los adapters
-        autocompleteViewModel.equipos.distinctUntilChanged().observe(viewLifecycleOwner) { equipos ->
-            val equipoStrings = equipos.map { "${it.interno} - ${it.descripcion}" }.toTypedArray()
+        val appDataViewModel: AppDataViewModel by activityViewModels()
+
+        appDataViewModel.equipos.observe(viewLifecycleOwner) { equipos ->
+            Log.d("ParteDiarioFragment", "Equipos recibidos: $equipos")
+            val equipoStrings = equipos.map { "${it.interno} - ${it.descripcion}" }
             val adapterEquipos = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, equipoStrings)
             binding.equipoAutocomplete.setAdapter(adapterEquipos)
-            Log.d("ParteDiario", "Equipos: $equipos")
         }
 
-        autocompleteViewModel.obras.distinctUntilChanged().observe(viewLifecycleOwner) { obras ->
-            val obraStrings = obras.map { "${it.centro_costo} - ${it.nombre}" }.toTypedArray()
+        appDataViewModel.obras.observe(viewLifecycleOwner) { obras ->
+            Log.d("ParteDiarioFragment", "Obras recibidas: $obras")
+            val obraStrings = obras.map { "${it.centro_costo} - ${it.nombre}" }
             val adapterObras = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, obraStrings)
             binding.obraAutocomplete.setAdapter(adapterObras)
-            Log.d("ParteDiario", "Obras: $obras")
         }
+
+
+//        // Observa los datos del ViewModel y configura los adapters
+//        autocompleteViewModel.equipos.distinctUntilChanged().observe(viewLifecycleOwner) { equipos ->
+//            val equipoStrings = equipos.map { "${it.interno} - ${it.descripcion}" }.toTypedArray()
+//            val adapterEquipos = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, equipoStrings)
+//            binding.equipoAutocomplete.setAdapter(adapterEquipos)
+//            Log.d("ParteDiario", "Equipos: $equipos")
+//        }
+//
+//        autocompleteViewModel.obras.distinctUntilChanged().observe(viewLifecycleOwner) { obras ->
+//            val obraStrings = obras.map { "${it.centro_costo} - ${it.nombre}" }.toTypedArray()
+//            val adapterObras = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, obraStrings)
+//            binding.obraAutocomplete.setAdapter(adapterObras)
+//            Log.d("ParteDiario", "Obras: $obras")
+//        }
 
         // Referencia al RecyclerView
         val recyclerView: RecyclerView = binding.partesDiariosRecyclerView
@@ -273,11 +303,11 @@ class ParteDiarioFragment : Fragment() {
         val progressDialog = ProgressDialogFragment.show(childFragmentManager)
 
         // Inicia la carga de datos desde el ViewModel
-        // Verifica si las listas están vacías
-        if (autocompleteViewModel.obras.value.isNullOrEmpty() ||
-            autocompleteViewModel.equipos.value.isNullOrEmpty()) {
-            autocompleteViewModel.cargarDatos()
-        }
+//        // Verifica si las listas están vacías
+//        if (autocompleteViewModel.obras.value.isNullOrEmpty() ||
+//            autocompleteViewModel.equipos.value.isNullOrEmpty()) {
+//            autocompleteViewModel.cargarDatos()
+//        }
 
         autocompleteViewModel.equipos.observe(viewLifecycleOwner) { equipos ->
             if (!equipos.isNullOrEmpty()) {
