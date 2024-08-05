@@ -131,10 +131,12 @@ class ListaPartesFragment : Fragment() {
         val applyFiltersButton: Button = binding.root.findViewById(R.id.applyFiltersButton)
         applyFiltersButton.setOnClickListener {
             val equipo = filtroEquipoAutocomplete.text.toString()
+            val equipoInterno = equipo.split(" - ").firstOrNull() ?: ""
+            // Usa equipoInterno para filtrar
             val fechaInicio = filtroFechaInicioEditText.text.toString()
             val fechaFin = filtroFechaFinEditText.text.toString()
-            Log.d("ListaPartesFragment", "Aplicando filtro - Equipo: $equipo, FechaInicio: $fechaInicio, FechaFin: $fechaFin")
-            viewModel.setFilter(equipo, fechaInicio, fechaFin)
+            Log.d("ListaPartesFragment", "Aplicando filtro - Equipo: $equipoInterno, FechaInicio: $fechaInicio, FechaFin: $fechaFin")
+            viewModel.setFilter(equipoInterno, fechaInicio, fechaFin)
         }
 
         // Configura el FloatingActionButton

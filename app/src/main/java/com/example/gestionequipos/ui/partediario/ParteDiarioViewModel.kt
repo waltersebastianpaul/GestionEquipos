@@ -63,6 +63,16 @@ class ParteDiarioViewModel : ViewModel() {
         }.flow.cachedIn(viewModelScope)
     }
 
+//    val partesDiarios: Flow<PagingData<ListarPartesDiarios>> = combine(
+//        _filterEquipo.asFlow(),
+//        _filterFechaInicio.asFlow(),
+//        _filterFechaFin.asFlow()
+//    ) { equipo, fechaInicio, fechaFin ->
+//        Pager(PagingConfig(pageSize = 20)) {
+//            ParteDiarioPagingSource(client, baseUrl, equipo ?: "", fechaInicio ?: "", fechaFin ?: "")
+//        }.flow
+//    }.flatMapLatest { it.cachedIn(viewModelScope) }
+
     fun setFilter(equipo: String, fechaInicio: String, fechaFin: String) {
         Log.d("ParteDiarioViewModel", "Setting filter - Equipo: $equipo, FechaInicio: $fechaInicio, FechaFin: $fechaFin")
         _filterEquipo.value = equipo

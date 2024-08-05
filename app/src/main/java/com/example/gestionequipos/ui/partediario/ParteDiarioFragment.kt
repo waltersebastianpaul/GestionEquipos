@@ -193,39 +193,8 @@ class ParteDiarioFragment : Fragment() {
             }
         }
 
-
-//        // Observa los datos del ViewModel y configura los adapters
-//        autocompleteViewModel.equipos.distinctUntilChanged().observe(viewLifecycleOwner) { equipos ->
-//            val equipoStrings = equipos.map { "${it.interno} - ${it.descripcion}" }.toTypedArray()
-//            val adapterEquipos = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, equipoStrings)
-//            binding.equipoAutocomplete.setAdapter(adapterEquipos)
-//            Log.d("ParteDiario", "Equipos: $equipos")
-//        }
-//
-//        autocompleteViewModel.obras.distinctUntilChanged().observe(viewLifecycleOwner) { obras ->
-//            val obraStrings = obras.map { "${it.centro_costo} - ${it.nombre}" }.toTypedArray()
-//            val adapterObras = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, obraStrings)
-//            binding.obraAutocomplete.setAdapter(adapterObras)
-//            Log.d("ParteDiario", "Obras: $obras")
-//        }
-
         // Referencia al RecyclerView
         val recyclerView: RecyclerView = binding.partesDiariosRecyclerView
-
-        // Crea una instancia del adaptador
-//        val adapter = ParteDiarioAdapter(emptyList()) // Inicialmente la lista está vacía
-
-        // Configura el RecyclerView
-//        recyclerView.adapter = adapter
-//        recyclerView.layoutManager = LinearLayoutManager(requireContext())
-
-//        // Observa los partes diarios del ViewModel y actualiza el adaptador
-//        viewModel.partesDiarios.observe(viewLifecycleOwner) { partesDiarios ->
-//            // Crea una nueva instancia del adaptador con la nueva lista
-//            val adapter = ParteDiarioAdapter(partesDiarios)
-//            recyclerView.adapter = adapter
-//            adapter.notifyDataSetChanged()
-//        }
 
         // Listener para el botón guardar
         guardarButton.setOnClickListener {
