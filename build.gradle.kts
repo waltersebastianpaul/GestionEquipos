@@ -7,5 +7,6 @@ plugins {
 buildscript {
     dependencies {
         classpath("com.android.tools.build:gradle:7.0.4") // O una versión superior
+        classpath("com.google.dagger:hilt-android-gradle-plugin:2.44")
     }
 }

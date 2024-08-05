@@ -30,5 +30,7 @@
     <string name="etiqueta_fab">Nuevo</string>
 
     <string name="content_description_equipo">Seleccionar equipo</string>
+    <string name="button_clear_filters">Limpiar Filtros</string>
+    <string name="button_filtrar">Filtrar Datos</string>
 
 </resources>

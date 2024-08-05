@@ -81,4 +81,9 @@ dependencies {
     implementation(libs.okhttp)
     implementation(libs.logging.interceptor)
 
+    implementation ("androidx.paging:paging-runtime-ktx:3.3.1")
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2") // Asegúrate de tener la última versión
+    implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3") // Asegúrate de tener la última versión
+
+
 }

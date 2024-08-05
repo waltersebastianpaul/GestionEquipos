@@ -1,10 +1,7 @@
 package com.example.gestionequipos.ui.partediario
 
 import android.app.DatePickerDialog
-import android.content.res.ColorStateList
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.text.Editable
 import android.text.InputFilter
 import android.text.TextWatcher
@@ -15,26 +12,24 @@ import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Button
-import android.widget.Toast
-import androidx.compose.material3.Snackbar
-import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.distinctUntilChanged
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import androidx.paging.PagingDataAdapter
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.gestionequipos.R
 import com.example.gestionequipos.databinding.FragmentListaPartesBinding
 import com.example.gestionequipos.ui.appdata.AppDataViewModel
 import com.example.gestionequipos.ui.autocomplete.AutocompleteViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
+import java.util.*
 
 class ListaPartesFragment : Fragment() {
 
@@ -45,8 +40,10 @@ class ListaPartesFragment : Fragment() {
 
     private lateinit var filtroEquipoAutocomplete: AutoCompleteTextView
     private lateinit var filtroEquipoTextInputLayout: TextInputLayout
-    private lateinit var filtroFechaTextInputLayout: TextInputLayout
-    private lateinit var filtroFechaEditText: TextInputEditText
+    private lateinit var filtroFechaInicioTextInputLayout: TextInputLayout
+    private lateinit var filtroFechaFinTextInputLayout: TextInputLayout
+    private lateinit var filtroFechaInicioEditText: TextInputEditText
+    private lateinit var filtroFechaFinEditText: TextInputEditText
 
     private var isDatePickerOpen = false // Variable para controlar si el DatePicker está abierto
 
@@ -61,8 +58,10 @@ class ListaPartesFragment : Fragment() {
 
         filtroEquipoAutocomplete = binding.filtroEquipoAutocomplete
         filtroEquipoTextInputLayout = binding.filtroEquipoTextInputLayout
-        filtroFechaTextInputLayout = binding.filtroFechaTextInputLayout
-        filtroFechaEditText = binding.filtroFechaEditText
+        filtroFechaInicioTextInputLayout = binding.filtroFechaInicioTextInputLayout
+        filtroFechaFinTextInputLayout = binding.filtroFechaFinTextInputLayout
+        filtroFechaInicioEditText = binding.filtroFechaInicioEditText
+        filtroFechaFinEditText = binding.filtroFechaFinEditText
 
         return binding.root
     }
@@ -74,58 +73,26 @@ class ListaPartesFragment : Fragment() {
         val recyclerView = binding.listaPartesRecyclerView
         recyclerView.layoutManager = LinearLayoutManager(context)
 
+        val adapter = ParteDiarioAdapter()
+        recyclerView.adapter = adapter
+
         val fab: FloatingActionButton = requireActivity().findViewById(R.id.fab)
         fab.visibility = View.VISIBLE
 
         val appDataViewModel: AppDataViewModel by activityViewModels()
 
         appDataViewModel.equipos.observe(viewLifecycleOwner) { equipos ->
-            Log.d("ParteDiarioFragment", "Equipos recibidos: $equipos")
+            Log.d("ListaPartesFragment", "Equipos recibidos: $equipos")
             val equipoStrings = equipos.map { "${it.interno} - ${it.descripcion}" }
             val adapterEquipos = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, equipoStrings)
             binding.filtroEquipoAutocomplete.setAdapter(adapterEquipos)
         }
 
-//        appDataViewModel.obras.observe(viewLifecycleOwner) { obras ->
-//            Log.d("ParteDiarioFragment", "Obras recibidas: $obras")
-//            val obraStrings = obras.map { "${it.centro_costo} - ${it.nombre}" }
-//            val adapterObras = ArrayAdapter(requireContext(), android.R.layout.simple_dropdown_item_1line, obraStrings)
-//            binding.obraAutocomplete.setAdapter(adapterObras)
-//        }
-
-
-
-        //eliminar de aca en adelante si funciona
-
-//        // Observa los datos del ViewModel y configura los adapters
-//        autocompleteViewModel.equipos.distinctUntilChanged()
-//            .observe(viewLifecycleOwner) { equipos ->
-//                val equipoStrings =
-//                    equipos.map { "${it.interno} - ${it.descripcion}" }.toTypedArray()
-//                val adapterEquipos = ArrayAdapter(
-//                    requireContext(),
-//                    android.R.layout.simple_dropdown_item_1line,
-//                    equipoStrings
-//                )
-//                binding.filtroEquipoAutocomplete.setAdapter(adapterEquipos)
-//                Log.d("ParteDiario", "Equipos: $equipos")
-//
-//                setEditTextToUppercase(filtroEquipoAutocomplete)
-//            }
-//
-//        // Inicia la carga de datos desde el ViewModel
-//        // Verifica si las listas están vacías
-//        if (autocompleteViewModel.obras.value.isNullOrEmpty() ||
-//            autocompleteViewModel.equipos.value.isNullOrEmpty()
-//        ) {
-//            autocompleteViewModel.cargarDatos()
-//        }
-
         // Observa los datos del ViewModel y configura el adaptador del RecyclerView
-        viewModel.partesDiarios.observe(viewLifecycleOwner) { partesDiarios ->
-            Log.d("ListaPartesFragment", "Partes diarios recibidos: $partesDiarios")
-            val adapter = ParteDiarioAdapter(partesDiarios)
-            recyclerView.adapter = adapter
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.partesDiarios.collectLatest { pagingData ->
+                adapter.submitData(pagingData)
+            }
         }
 
         // TextWatcher para filtroEquipoAutocomplete
@@ -148,7 +115,6 @@ class ListaPartesFragment : Fragment() {
                         filtroEquipoTextInputLayout.isErrorEnabled = false
                     }
                 }
-                aplicarFiltro() // Llama a aplicarFiltro() después de cada cambio en el texto
             }
         })
 
@@ -156,103 +122,61 @@ class ListaPartesFragment : Fragment() {
         val clearAllFiltersButton: Button = binding.root.findViewById(R.id.clearAllFiltersButton)
         clearAllFiltersButton.setOnClickListener {
             filtroEquipoAutocomplete.setText("")
-            filtroFechaEditText.setText("")
-            aplicarFiltro()
+            filtroFechaInicioEditText.setText("")
+            filtroFechaFinEditText.setText("")
+            viewModel.setFilter("", "", "")
+        }
+
+        // Configura el botón para aplicar los filtros
+        val applyFiltersButton: Button = binding.root.findViewById(R.id.applyFiltersButton)
+        applyFiltersButton.setOnClickListener {
+            val equipo = filtroEquipoAutocomplete.text.toString()
+            val fechaInicio = filtroFechaInicioEditText.text.toString()
+            val fechaFin = filtroFechaFinEditText.text.toString()
+            Log.d("ListaPartesFragment", "Aplicando filtro - Equipo: $equipo, FechaInicio: $fechaInicio, FechaFin: $fechaFin")
+            viewModel.setFilter(equipo, fechaInicio, fechaFin)
         }
 
         // Configura el FloatingActionButton
         fab.setImageResource(R.drawable.ic_add)
-        fab.backgroundTintList =
-            ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.colorPrimary))
-        fab.imageTintList =
-            ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.white))
-
         fab.setOnClickListener {
             findNavController().navigate(R.id.nav_partediario)
         }
 
-        // Configura el OnClickListener para filtroFechaEditText
-        filtroFechaEditText.setOnClickListener {
-            val locale = Locale.getDefault() // Crea un nuevo objeto Locale con el idioma español
-            val calendar = Calendar.getInstance(locale) // Usa el locale para el Calendar
-
-            // Obtener la fecha del EditText si está presente
-            val dateString = filtroFechaEditText.text.toString()
-            if (dateString.isNotBlank()) {val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                val date = formatter.parse(dateString)
-                calendar.time = date
+        // Configura el OnClickListener para filtroFechaInicioEditText
+        filtroFechaInicioEditText.setOnClickListener {
+            if (!isDatePickerOpen) {
+                isDatePickerOpen = true
+                val calendar = Calendar.getInstance()
+                val datePickerDialog = DatePickerDialog(requireContext(), { _, year, month, dayOfMonth ->
+                    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                    calendar.set(year, month, dayOfMonth)
+                    filtroFechaInicioEditText.setText(formatter.format(calendar.time))
+                    isDatePickerOpen = false
+                }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
+                datePickerDialog.setOnDismissListener {
+                    isDatePickerOpen = false
+                }
+                datePickerDialog.show()
             }
-
-            val year = calendar.get(Calendar.YEAR)
-            val month = calendar.get(Calendar.MONTH)
-            val day = calendar.get(Calendar.DAY_OF_MONTH)
-
-            val datePickerDialog = DatePickerDialog(
-                requireContext(),
-                { _, year, month, dayOfMonth ->
-                    val formattedDate = String.format("%02d/%02d/%04d", dayOfMonth, month + 1, year)
-                    filtroFechaEditText.setText(formattedDate)
-                    aplicarFiltro()
-                },
-                year,
-                month,
-                day
-            )
-            datePickerDialog.show()
         }
 
-    }
-
-    private fun setEditTextToUppercase(editText: AutoCompleteTextView) {
-        editText.filters = arrayOf(InputFilter.AllCaps())
-    }
-
-    private fun aplicarFiltro() {
-        val equipoSeleccionadoText = filtroEquipoAutocomplete.text.toString()
-        val equipoInterno = equipoSeleccionadoText.split(" - ").firstOrNull() ?: ""
-        Log.d("ListaPartesFragment", "Equipo seleccionado: $equipoInterno")
-
-        val fechaSeleccionadaText = filtroFechaEditText.text.toString()
-        Log.d("ListaPartesFragment", "Fecha seleccionada en el filtro: $fechaSeleccionadaText")
-
-        val fechaSeleccionada = if (fechaSeleccionadaText.isNotBlank()) {
-            val formatoEntrada = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            val formatoSalida = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            val fechaDate = formatoEntrada.parse(fechaSeleccionadaText)
-            val fechaFormateada = formatoSalida.format(fechaDate)
-            Log.d("ListaPartesFragment", "Fecha formateada: $fechaFormateada")
-            fechaFormateada
-        } else {
-            ""
-        }
-
-        val partesDiariosFiltrados = viewModel.filtrarPartesDiarios(equipoInterno, fechaSeleccionada)
-        Log.d("ListaPartesFragment", "Número de partes diarios filtrados: ${partesDiariosFiltrados.size}")
-
-        val adapter = ParteDiarioAdapter(partesDiariosFiltrados)
-        binding.listaPartesRecyclerView.adapter = adapter
-    }
-
-    private var autocompletesCargados = false
-    private var partesDiariosCargados = false
-
-    override fun onResume(){
-        super.onResume()
-
-        autocompletesCargados = false
-        partesDiariosCargados = false
-
-        // Verifica si las listas están vacías
-        if (autocompleteViewModel.obras.value.isNullOrEmpty() ||
-            autocompleteViewModel.equipos.value.isNullOrEmpty()) {
-            autocompleteViewModel.cargarDatos()
-        } else {
-            autocompletesCargados = true
-        }
-
-        // Inicia la cargade datos
-        viewModel.cargarPartesDiarios {
-            partesDiariosCargados = true
+        // Configura el OnClickListener para filtroFechaFinEditText
+        filtroFechaFinEditText.setOnClickListener {
+            if (!isDatePickerOpen) {
+                isDatePickerOpen = true
+                val calendar = Calendar.getInstance()
+                val datePickerDialog = DatePickerDialog(requireContext(), { _, year, month, dayOfMonth ->
+                    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                    calendar.set(year, month, dayOfMonth)
+                    filtroFechaFinEditText.setText(formatter.format(calendar.time))
+                    isDatePickerOpen = false
+                }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
+                datePickerDialog.setOnDismissListener {
+                    isDatePickerOpen = false
+                }
+                datePickerDialog.show()
+            }
         }
     }
 

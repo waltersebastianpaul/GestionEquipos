@@ -213,19 +213,19 @@ class ParteDiarioFragment : Fragment() {
         val recyclerView: RecyclerView = binding.partesDiariosRecyclerView
 
         // Crea una instancia del adaptador
-        val adapter = ParteDiarioAdapter(emptyList()) // Inicialmente la lista está vacía
+//        val adapter = ParteDiarioAdapter(emptyList()) // Inicialmente la lista está vacía
 
         // Configura el RecyclerView
-        recyclerView.adapter = adapter
-        recyclerView.layoutManager = LinearLayoutManager(requireContext())
+//        recyclerView.adapter = adapter
+//        recyclerView.layoutManager = LinearLayoutManager(requireContext())
 
-        // Observa los partes diarios del ViewModel y actualiza el adaptador
-        viewModel.partesDiarios.observe(viewLifecycleOwner) { partesDiarios ->
-            // Crea una nueva instancia del adaptador con la nueva lista
-            val adapter = ParteDiarioAdapter(partesDiarios)
-            recyclerView.adapter = adapter
-            adapter.notifyDataSetChanged()
-        }
+//        // Observa los partes diarios del ViewModel y actualiza el adaptador
+//        viewModel.partesDiarios.observe(viewLifecycleOwner) { partesDiarios ->
+//            // Crea una nueva instancia del adaptador con la nueva lista
+//            val adapter = ParteDiarioAdapter(partesDiarios)
+//            recyclerView.adapter = adapter
+//            adapter.notifyDataSetChanged()
+//        }
 
         // Listener para el botón guardar
         guardarButton.setOnClickListener {
