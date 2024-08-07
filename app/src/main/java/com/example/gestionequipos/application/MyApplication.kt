@@ -1,14 +1,14 @@
 package com.example.gestionequipos.application
 
 import android.app.Application
-import android.content.Intent
-import android.net.Uri
 import android.util.Log
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.ViewModelStore
 import androidx.lifecycle.ViewModelStoreOwner
 import com.example.gestionequipos.ui.appdata.AppDataViewModel
-import com.example.gestionequipos.utils.EmailSender
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class MyApplication : Application() {
 
@@ -29,31 +29,7 @@ class MyApplication : Application() {
         appDataViewModel.cargarDatos()
         Log.d("MyApplication", "onCreate: Datos iniciales cargados")
 
-// Inicio - codigo para manejo de errores y reporte via mail (JavaMail)
-        // Configurar el manejador de excepciones
-        val defaultHandler = Thread.getDefaultUncaughtExceptionHandler()
-
-        Thread.setDefaultUncaughtExceptionHandler { thread, exception ->
-            // Construir el reporte de error
-            val report = StringBuilder()
-            report.append("Error en la aplicación:\n")
-            report.append("Thread: ${thread.name}\n")
-            report.append("Excepción: ${exception.message}\n")
-            report.append("Traza de la pila:\n")
-            for (element in exception.stackTrace) {
-                report.append("$element\n")
-            }
-
-            // Enviar el reporte por correo electrónico usando la clase EmailSender (JavaMail)
-            val emailSender = EmailSender()
-            emailSender.sendEmail(report.toString())
-
-            // Llamar al manejador de excepciones por defecto
-            defaultHandler?.uncaughtException(thread, exception)
-        }
-
     }
-// Fin - codigo para manejo de errores y reporte via mail (JavaMail)
 
     override fun onTerminate() {
         super.onTerminate()
