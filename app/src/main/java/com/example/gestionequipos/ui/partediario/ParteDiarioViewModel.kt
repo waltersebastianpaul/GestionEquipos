@@ -21,7 +21,7 @@ import com.example.gestionequipos.utils.Constants
 
 class ParteDiarioViewModel : ViewModel() {
 
-    private val baseUrl = Constants.getBaseUrl() //"https://adminobr.000webhostapp.com/"
+    private val baseUrl = Constants.getBaseUrl() //"http://adminobr.site/"
 
     private val _mensaje = MutableLiveData<Event<String?>>()
     val mensaje: LiveData<Event<String?>> = _mensaje
@@ -37,6 +37,8 @@ class ParteDiarioViewModel : ViewModel() {
     private val _filterFechaFin = MutableLiveData<String>()
 
     private val client = OkHttpClient.Builder().build()
+    private val prtesDiariosUrl = Constants.PartesDiarios
+
 
     val partesDiarios: Flow<PagingData<ListarPartesDiarios>> = combine(
         _filterEquipo.asFlow(),
@@ -108,11 +110,12 @@ class ParteDiarioViewModel : ViewModel() {
                     .build()
 
                 val request = Request.Builder()
-                    .url("$baseUrl/guardar_parte_diario.php")
+                    .url("$baseUrl${prtesDiariosUrl.GUARDAR}")
                     .post(requestBody)
                     .build()
+                Log.d("ParteDiarioPagingSource", "Request URL: \"$baseUrl${prtesDiariosUrl.GUARDAR}\"")
 
-                Log.d("ParteDiarioViewModel", "Enviando datos al servidor: ${requestBody.toString()}")
+                Log.d("ParteDiarioViewModel", "Enviando datos al servidor: $requestBody")
 
                 val response = client.newCall(request).execute()
 

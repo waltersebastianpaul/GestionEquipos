@@ -13,10 +13,10 @@ import retrofit2.http.GET
 
 interface GestionEquiposApi {
 
-    @GET("get_equipos.php") // Ruta corregida
+    @GET(Constants.Equipos.GET_LISTA) // Ruta corregida
     suspend fun getEquipos(): List<Equipo>
 
-    @GET("get_obras.php") // Ruta corregida
+    @GET(Constants.Obras.GET_LISTA) // Ruta corregida
     suspend fun getObras(): List<Obra>
 
     companion object {

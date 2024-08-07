@@ -23,9 +23,9 @@ class ParteDiarioAdapter : PagingDataAdapter<ListarPartesDiarios, ParteDiarioAda
 
     class ParteDiarioViewHolder(private val binding: ItemParteDiarioBinding) : RecyclerView.ViewHolder(binding.root) {
         fun bind(parteDiario: ListarPartesDiarios) {
-            binding.fechaTextView.text = parteDiario.fecha
-            binding.equipoTextView.text = parteDiario.interno
-            binding.horasTextView.text = parteDiario.horas_trabajadas.toString()
+            binding.fechaTextView.text = "Fecha: ${parteDiario.fecha}"
+            binding.equipoTextView.text = "Equipo: ${parteDiario.interno}"
+            binding.horasTextView.text = "Horas: ${parteDiario.horas_trabajadas}"
         }
     }
 

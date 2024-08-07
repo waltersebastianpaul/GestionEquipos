@@ -216,7 +216,8 @@
         android:paddingTop="12dp"
         android:paddingBottom="12dp"
         android:minHeight="48dp"
-        android:backgroundTint="@color/colorPrimary"
+        android:backgroundTint="@color/colorButtonPrimary"
+        android:textColor="@color/colorTextButtonPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/observacionesTextInputLayout" />
@@ -234,21 +235,22 @@
         android:backgroundTint="@color/colorPrimary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/guardarButton" />
+        app:layout_constraintTop_toBottomOf="@id/guardarButton"
+        android:visibility="gone"/>
 
     <Button
-        android:id="@+id/verPartesButton"
+        android:id="@+id/listarPartesButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_marginStart="16dp"
         android:layout_marginEnd="16dp"
-        android:backgroundTint="@color/gray_100"
-        android:paddingTop="12dp"
+        android:paddingTop="8dp"
         android:paddingBottom="12dp"
         android:minHeight="48dp"
-        android:text="@string/listar_registros"
-        android:textAllCaps="false"
-        android:textColor="@color/black"
+        android:text="@string/button_listar_registros"
+        android:textAllCaps="true"
+        android:backgroundTint="@color/colorButtonSecondary"
+        android:textColor="@color/colorTextButtonSecondary"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/nuevoParteButton" />
@@ -260,7 +262,7 @@
         android:layout_marginStart="16dp"
         android:layout_marginTop="0dp"
         android:layout_marginEnd="16dp"
-        app:layout_constraintTop_toBottomOf="@id/verPartesButton"
+        app:layout_constraintTop_toBottomOf="@id/listarPartesButton"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />

@@ -101,7 +101,7 @@ class ParteDiarioFragment : Fragment() {
         setEditTextToUppercase(equipoAutocomplete)
         setEditTextToUppercase(obraAutocomplete)
 
-        binding.verPartesButton.setOnClickListener {
+        binding.listarPartesButton.setOnClickListener {
             findNavController().navigate(R.id.action_navigation_home_to_listaPartesFragment)
         }
 

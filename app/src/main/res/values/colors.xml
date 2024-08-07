@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="colorPrimary">#313c52</color>
+<!--    <color name="colorPrimary">#313c52</color>-->
+    <color name="colorPrimary">#3483fa</color>
     <color name="colorPrimaryDark">#212529</color>
     <color name="colorAccent">#2fb344</color>
     <color name="colorGreen">#2fb344</color>
@@ -20,6 +21,15 @@
     <color name="background_color">#FFFFFF</color> <!-- Puedes usar cualquier color que desees -->
     <color name="transparent">#00000000</color>
 
+    <!-- Buttons -->
+    <color name="colorButtonPrimary">#3483fa</color>
+    <color name="colorButtonSecondary">#e3edfb</color>
+    <color name="colorButtonSuccess">#00a650</color>
+    <color name="colorTextButtonPrimary">#ffffff</color>
+    <color name="colorTextButtonSecondary">#3483fa</color>
+    <color name="colorTextButtonSuccess">#ffffff</color>
+    <color name="colorBorderEnfocado">#3483fa</color>
+    colorBorderEnfocado
     <!-- Gray palette -->
     <color name="gray_50">#f8fafc</color>
     <color name="gray_100">#f1f5f9</color>

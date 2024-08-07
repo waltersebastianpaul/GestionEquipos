@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.paging.PagingSource
 import androidx.paging.PagingState
 import com.example.gestionequipos.data.ListarPartesDiarios
+import com.example.gestionequipos.utils.Constants
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
@@ -21,12 +22,15 @@ class ParteDiarioPagingSource(
     private val fechaFin: String
 ) : PagingSource<Int, ListarPartesDiarios>() {
 
+    private val prtesDiariosUrl = Constants.PartesDiarios
+
     override suspend fun load(params: LoadParams<Int>): LoadResult<Int, ListarPartesDiarios> {
         return try {
             val page = params.key ?: 1
             val pageSize = params.loadSize
 
-            val url = URL("$baseUrl/get_partes_diarios.php?page=$page&pageSize=$pageSize&equipo=$equipo&fechaInicio=$fechaInicio&fechaFin=$fechaFin")
+//            val url = URL("$baseUrl/get_partes_diarios.php?page=$page&pageSize=$pageSize&equipo=$equipo&fechaInicio=$fechaInicio&fechaFin=$fechaFin")
+            val url = URL("$baseUrl${prtesDiariosUrl.GET_LISTA}?page=$page&pageSize=$pageSize&equipo=$equipo&fechaInicio=$fechaInicio&fechaFin=$fechaFin")
 
             val request = Request.Builder()
                 .url(url)

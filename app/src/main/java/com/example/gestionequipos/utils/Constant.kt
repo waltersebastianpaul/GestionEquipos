@@ -1,37 +1,26 @@
 package com.example.gestionequipos.utils
 
-object Constants {
-    private const val BASE_URL = "http://adminobr.site/"
+sealed class Constants {
+    companion object {
+        private const val BASE_URL = "http://adminobr.site/"
         fun getBaseUrl(): String {
-        return BASE_URL
+            return BASE_URL
+        }
     }
 
     object PartesDiarios {
-        const val GET_LISTA = "get_partes_diarios.php"
-        const val GUARDAR = "guardar_parte_diario.php"
-        // ... otras rutas de partes diarios
+        const val GET_LISTA = "gestionequipos/get_partes_diarios.php"
+        const val GUARDAR = "gestionequipos/guardar_parte_diario.php"
+        // ... otras rutas de obras si es necesario
     }
 
     object Equipos {
-        const val GET_LISTA = "get_equipos.php"
-        // ... otras rutas de equipos
+        const val GET_LISTA = "gestionequipos/get_equipos.php"
+        // ... otras rutas de obras si es necesario
     }
-    // ... otros grupos de rutas
+
+    object Obras {
+        const val GET_LISTA = "gestionequipos/get_obras.php"
+        // ... otras rutas de obras si es necesario
+    }
 }
-//package com.example.gestionequipos.utils
-//
-//object Constants {
-//    const val BASE_URL = "adminobr.site/"
-//
-//    object PartesDiarios {
-//        const val GET_LISTA = "get_partes_diarios.php"
-//        const val GUARDAR = "guardar_parte_diario.php"
-//        // ... otras rutas de partes diarios
-//    }
-//
-//    object Equipos {
-//        const val GET_LISTA = "get_equipos.php"
-//        // ... otras rutas de equipos
-//    }
-//    // ... otros grupos de rutas
-//}

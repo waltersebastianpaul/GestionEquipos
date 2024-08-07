@@ -10,7 +10,7 @@ import java.util.concurrent.TimeUnit
 
 
 object ApiUtils {
-    private val BASE_URL = Constants.getBaseUrl() //"https://adminobr.000webhostapp.com/api/"
+    private val BASE_URL = Constants.getBaseUrl() //"http://adminobr.site/"
 
     fun getApiService(): ApiService {
         val loggingInterceptor = HttpLoggingInterceptor().apply {
