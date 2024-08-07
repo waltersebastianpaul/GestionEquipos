@@ -1,5 +1,6 @@
 package com.example.gestionequipos.ui.partediario
 
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.Context
 import android.os.Bundle
@@ -23,7 +24,6 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.gestionequipos.R
 import com.example.gestionequipos.databinding.FragmentListaPartesBinding
 import com.example.gestionequipos.ui.appdata.AppDataViewModel
-import com.example.gestionequipos.ui.autocomplete.AutocompleteViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -67,6 +67,7 @@ class ListaPartesFragment : Fragment() {
         return binding.root
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
