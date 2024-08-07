@@ -1,11 +1,10 @@
 package com.example.gestionequipos.ui.partediario
 
 
+import android.annotation.SuppressLint
 import android.app.DatePickerDialog
 import android.content.res.ColorStateList
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.text.Editable
 import android.text.InputFilter
 import android.text.TextWatcher
@@ -22,17 +21,13 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.distinctUntilChanged
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.RecyclerView
 import com.example.gestionequipos.R
 import com.example.gestionequipos.data.ParteDiario
 import com.example.gestionequipos.databinding.FragmentParteDiarioBinding
 import com.example.gestionequipos.ui.appdata.AppDataViewModel
 import com.example.gestionequipos.ui.autocomplete.AutocompleteViewModel
 import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.snackbar.Snackbar
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import java.text.SimpleDateFormat
@@ -44,7 +39,6 @@ class ParteDiarioFragment : Fragment() {
     private var _binding: FragmentParteDiarioBinding? = null
     private val binding get() = _binding!!
 
-    private var isDatePickerOpen = false // Variable para controlar si el DatePicker está abierto
     private val autocompleteViewModel: AutocompleteViewModel by activityViewModels()
     private lateinit var fechaEditText: TextInputEditText
 
@@ -85,22 +79,17 @@ class ParteDiarioFragment : Fragment() {
 
         // Referencias a los elementos del layout
         val fechaEditText: TextInputEditText = binding.fechaEditText
-        val fechaTextInputLayout: TextInputLayout = binding.fechaTextInputLayout
 
-        val equipoTextInputLayout: TextInputLayout = binding.equipoTextInputLayout
         val equipoAutocomplete: AutoCompleteTextView = binding.equipoAutocomplete
 
         val horasInicioEditText: EditText = binding.horasInicioEditText
-        val horasInicioTextInputLayout: TextInputLayout = binding.horasInicioTextInputLayout
 
         val horasFinEditText: EditText = binding.horasFinEditText
-        val horasFinTextInputLayout: TextInputLayout = binding.horasFinTextInputLayout
 
         val horasTrabajadasEditText: EditText = binding.horasTrabajadasEditText
 
         val observacionesEditText: EditText = binding.observacionesEditText
 
-        val obraTextInputLayout: TextInputLayout = binding.obraTextInputLayout
         val obraAutocomplete: AutoCompleteTextView = binding.obraAutocomplete
 
         val guardarButton: Button = binding.guardarButton
@@ -155,7 +144,9 @@ class ParteDiarioFragment : Fragment() {
             val dateString = fechaEditText.text.toString()
             if (dateString.isNotBlank()) {val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
                 val date = formatter.parse(dateString)
-                calendar.time = date
+                if (date != null) {
+                    calendar.time = date
+                }
             }
 
             val year = calendar.get(Calendar.YEAR)
@@ -192,9 +183,6 @@ class ParteDiarioFragment : Fragment() {
                 binding.obraAutocomplete.setAdapter(adapterObras)
             }
         }
-
-        // Referencia al RecyclerView
-        val recyclerView: RecyclerView = binding.partesDiariosRecyclerView
 
         // Listener para el botón guardar
         guardarButton.setOnClickListener {
@@ -368,6 +356,7 @@ class ParteDiarioFragment : Fragment() {
         return camposValidos
     }
 
+    @SuppressLint("SetTextI18n")
     private fun calcularHorasTrabajadas() {
         val horasInicioText = binding.horasInicioEditText.text.toString()
         val horasFinText = binding.horasFinEditText.text.toString()

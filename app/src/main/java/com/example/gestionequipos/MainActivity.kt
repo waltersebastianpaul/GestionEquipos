@@ -37,7 +37,6 @@ class MainActivity : AppCompatActivity() {
         setSupportActionBar(binding.appBarMain.toolbar)
         fab = binding.appBarMain.fab
 
-        val drawerLayout: DrawerLayout = binding.drawerLayout
         val navView: NavigationView = binding.navView
         val headerView = navView.getHeaderView(0)
         val emailTextView: TextView = headerView.findViewById(R.id.textView)
