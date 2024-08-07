@@ -55,6 +55,7 @@ dependencies {
     implementation(libs.filament.android)
     implementation(libs.androidx.work.runtime)
     implementation(libs.androidx.core.i18n)
+    implementation(libs.androidx.datastore.core.android)
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
@@ -85,5 +86,9 @@ dependencies {
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.5.2") // Asegúrate de tener la última versión
     implementation ("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3") // Asegúrate de tener la última versión
 
+
+    // ... otrasdependencias
+    implementation ("com.sun.mail:android-mail:1.6.7")
+    implementation ("com.sun.mail:android-activation:1.6.7")
 
 }
