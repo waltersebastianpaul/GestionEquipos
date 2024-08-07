@@ -168,38 +168,92 @@ class ListaPartesFragment : Fragment() {
 
         // Configura el OnClickListener para filtroFechaInicioEditText
         filtroFechaInicioEditText.setOnClickListener {
-            if (!isDatePickerOpen) {
-                isDatePickerOpen = true
-                val calendar = Calendar.getInstance()
-                val datePickerDialog = DatePickerDialog(requireContext(), { _, year, month, dayOfMonth ->
-                    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                    calendar.set(year, month, dayOfMonth)
-                    filtroFechaInicioEditText.setText(formatter.format(calendar.time))
-                    isDatePickerOpen = false
-                }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
-                datePickerDialog.setOnDismissListener {
-                    isDatePickerOpen = false
+//            if (!isDatePickerOpen) {
+//                isDatePickerOpen = true
+//                val calendar = Calendar.getInstance()
+//                val datePickerDialog = DatePickerDialog(requireContext(), { _, year, month, dayOfMonth ->
+//                    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+//                    calendar.set(year, month, dayOfMonth)
+//                    filtroFechaInicioEditText.setText(formatter.format(calendar.time))
+//                    isDatePickerOpen = false
+//                }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
+//                datePickerDialog.setOnDismissListener {
+//                    isDatePickerOpen = false
+//                }
+//                datePickerDialog.show()
+//            }
+            val locale = Locale.getDefault() // Crea un nuevo objeto Locale con el idioma español
+            val calendar = Calendar.getInstance(locale) // Usa el locale para el Calendar
+
+            // Obtener la fecha del EditText si está presente
+            val dateString = filtroFechaInicioEditText.text.toString()
+            if (dateString.isNotBlank()) {val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                val date = formatter.parse(dateString)
+                if (date != null) {
+                    calendar.time = date
                 }
-                datePickerDialog.show()
             }
+
+            val year = calendar.get(Calendar.YEAR)
+            val month = calendar.get(Calendar.MONTH)
+            val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+            val datePickerDialog = DatePickerDialog(
+                requireContext(),
+                { _, selectedYear, selectedMonth, selectedDay ->
+                    val formattedDate = String.format("%02d/%02d/%04d", selectedDay, selectedMonth + 1, selectedYear)
+                    filtroFechaInicioEditText.setText(formattedDate)
+                },
+                year,
+                month,
+                day
+            )
+            datePickerDialog.show()
         }
 
         // Configura el OnClickListener para filtroFechaFinEditText
         filtroFechaFinEditText.setOnClickListener {
-            if (!isDatePickerOpen) {
-                isDatePickerOpen = true
-                val calendar = Calendar.getInstance()
-                val datePickerDialog = DatePickerDialog(requireContext(), { _, year, month, dayOfMonth ->
-                    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-                    calendar.set(year, month, dayOfMonth)
-                    filtroFechaFinEditText.setText(formatter.format(calendar.time))
-                    isDatePickerOpen = false
-                }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
-                datePickerDialog.setOnDismissListener {
-                    isDatePickerOpen = false
+//            if (!isDatePickerOpen) {
+//                isDatePickerOpen = true
+//                val calendar = Calendar.getInstance()
+//                val datePickerDialog = DatePickerDialog(requireContext(), { _, year, month, dayOfMonth ->
+//                    val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+//                    calendar.set(year, month, dayOfMonth)
+//                    filtroFechaFinEditText.setText(formatter.format(calendar.time))
+//                    isDatePickerOpen = false
+//                }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH))
+//                datePickerDialog.setOnDismissListener {
+//                    isDatePickerOpen = false
+//                }
+//                datePickerDialog.show()
+//            }
+            val locale = Locale.getDefault() // Crea un nuevo objeto Locale con el idioma español
+            val calendar = Calendar.getInstance(locale) // Usa el locale para el Calendar
+
+            // Obtener la fecha del EditText si está presente
+            val dateString = filtroFechaFinEditText.text.toString()
+            if (dateString.isNotBlank()) {val formatter = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
+                val date = formatter.parse(dateString)
+                if (date != null) {
+                    calendar.time = date
                 }
-                datePickerDialog.show()
             }
+
+            val year = calendar.get(Calendar.YEAR)
+            val month = calendar.get(Calendar.MONTH)
+            val day = calendar.get(Calendar.DAY_OF_MONTH)
+
+            val datePickerDialog = DatePickerDialog(
+                requireContext(),
+                { _, selectedYear, selectedMonth, selectedDay ->
+                    val formattedDate = String.format("%02d/%02d/%04d", selectedDay, selectedMonth + 1, selectedYear)
+                    filtroFechaFinEditText.setText(formattedDate)
+                },
+                year,
+                month,
+                day
+            )
+            datePickerDialog.show()
         }
     }
 

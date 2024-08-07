@@ -23,4 +23,10 @@ sealed class Constants {
         const val GET_LISTA = "gestionequipos/get_obras.php"
         // ... otras rutas de obras si es necesario
     }
+
+    object Autheticacion {
+        const val LOGIN = "auth/login.php"
+        const val LOGOUT = "auth/logout.php"
+        // ... otras rutas de obras si es necesario
+    }
 }

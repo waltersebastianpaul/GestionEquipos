@@ -1,4 +1,4 @@
-package com.example.gestionequipos
+package com.example.gestionequipos.application
 
 import android.app.Application
 import android.util.Log
