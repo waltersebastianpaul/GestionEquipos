@@ -14,26 +14,14 @@ import kotlinx.coroutines.withContext
 import okhttp3.FormBody
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import retrofit2.HttpException
 import java.io.IOException
-import java.net.UnknownHostException
-import java.util.concurrent.TimeUnit
 
 
-import androidx.lifecycle.*
-import androidx.paging.*
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-
-
-import androidx.lifecycle.*
-import androidx.paging.*
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
+import com.example.gestionequipos.utils.Constants
 
 class ParteDiarioViewModel : ViewModel() {
 
-    private val baseUrl = "https://adminobr.000webhostapp.com/"
+    private val baseUrl = Constants.getBaseUrl() //"https://adminobr.000webhostapp.com/"
 
     private val _mensaje = MutableLiveData<Event<String?>>()
     val mensaje: LiveData<Event<String?>> = _mensaje
@@ -58,20 +46,10 @@ class ParteDiarioViewModel : ViewModel() {
         Triple(equipo, fechaInicio, fechaFin)
     }.flatMapLatest { (equipo, fechaInicio, fechaFin) ->
         Log.d("ParteDiarioViewModel", "Fetching data with filter - Equipo: $equipo, FechaInicio: $fechaInicio, FechaFin: $fechaFin")
-        Pager(PagingConfig(pageSize = 20)) {
+        Pager(PagingConfig(pageSize = 10)) {
             ParteDiarioPagingSource(client, baseUrl, equipo ?: "", fechaInicio ?: "", fechaFin ?: "")
         }.flow.cachedIn(viewModelScope)
     }
-
-//    val partesDiarios: Flow<PagingData<ListarPartesDiarios>> = combine(
-//        _filterEquipo.asFlow(),
-//        _filterFechaInicio.asFlow(),
-//        _filterFechaFin.asFlow()
-//    ) { equipo, fechaInicio, fechaFin ->
-//        Pager(PagingConfig(pageSize = 20)) {
-//            ParteDiarioPagingSource(client, baseUrl, equipo ?: "", fechaInicio ?: "", fechaFin ?: "")
-//        }.flow
-//    }.flatMapLatest { it.cachedIn(viewModelScope) }
 
     fun setFilter(equipo: String, fechaInicio: String, fechaFin: String) {
         Log.d("ParteDiarioViewModel", "Setting filter - Equipo: $equipo, FechaInicio: $fechaInicio, FechaFin: $fechaFin")

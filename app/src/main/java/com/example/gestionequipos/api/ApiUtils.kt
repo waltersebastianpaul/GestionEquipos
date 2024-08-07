@@ -1,5 +1,6 @@
 package com.example.gestionequipos.api
 
+import com.example.gestionequipos.utils.Constants
 import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -9,7 +10,7 @@ import java.util.concurrent.TimeUnit
 
 
 object ApiUtils {
-    private const val BASE_URL = "https://adminobr.000webhostapp.com/api/"
+    private val BASE_URL = Constants.getBaseUrl() //"https://adminobr.000webhostapp.com/api/"
 
     fun getApiService(): ApiService {
         val loggingInterceptor = HttpLoggingInterceptor().apply {

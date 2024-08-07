@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <color name="colorPrimary">#4650dd</color>
+    <color name="colorPrimary">#313c52</color>
     <color name="colorPrimaryDark">#212529</color>
     <color name="colorAccent">#2fb344</color>
     <color name="colorGreen">#2fb344</color>
@@ -20,4 +20,12 @@
     <color name="background_color">#FFFFFF</color> <!-- Puedes usar cualquier color que desees -->
     <color name="transparent">#00000000</color>
 
+    <!-- Gray palette -->
+    <color name="gray_50">#f8fafc</color>
+    <color name="gray_100">#f1f5f9</color>
+    <color name="gray_200">#c8d3e1</color>
+    <color name="gray_300">#c8d3e1</color>
+    <color name="gray_700">#313c52</color>
+    <color name="gray_800">#1d273b</color>
+    <color name="gray_900">#0f172a</color>
 </resources>

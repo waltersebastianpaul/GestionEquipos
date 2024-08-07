@@ -3,6 +3,7 @@ package com.example.gestionequipos.data.remote
 import android.app.Application
 import com.example.gestionequipos.data.Equipo
 import com.example.gestionequipos.data.Obra
+import com.example.gestionequipos.utils.Constants
 import com.google.gson.GsonBuilder
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
@@ -19,7 +20,7 @@ interface GestionEquiposApi {
     suspend fun getObras(): List<Obra>
 
     companion object {
-        private const val BASE_URL = "https://adminobr.000webhostapp.com/" // URL base corregida
+        private val BASE_URL = Constants.getBaseUrl() //"https://adminobr.000webhostapp.com/" // URL base corregida
 
         fun create(application: Application): GestionEquiposApi {
             val logging = HttpLoggingInterceptor()

@@ -36,7 +36,7 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_marginStart="16dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="4dp"
         android:layout_marginEnd="16dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -81,25 +81,6 @@
     </LinearLayout>
 
     <Button
-        android:id="@+id/clearAllFiltersButton"
-        android:layout_width="0dp"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:layout_marginEnd="16dp"
-        android:paddingTop="12dp"
-        android:layout_marginTop="8dp"
-        android:paddingBottom="12dp"
-        android:minHeight="48dp"
-        android:backgroundTint="@color/colorPrimary"
-        android:background="@drawable/rounded_button_transparent_border"
-        android:outlineProvider="background"
-        android:text="Limpiar Filtros"
-        android:textColor="@color/black"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/fechasLayout" />
-
-    <Button
         android:id="@+id/applyFiltersButton"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
@@ -109,14 +90,33 @@
         android:layout_marginTop="8dp"
         android:paddingBottom="12dp"
         android:minHeight="48dp"
-        android:backgroundTint="@color/colorPrimary"
-        android:background="@drawable/rounded_button_transparent_border"
+        android:backgroundTint="@color/gray_100"
         android:outlineProvider="background"
-        android:text="Filtrar Partes"
+        android:text="Filtrar Partes Diarios"
+        android:textAllCaps="false"
         android:textColor="@color/black"
+        android:contentDescription="Botón para aplicar filtros"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/clearAllFiltersButton" />
+        app:layout_constraintTop_toBottomOf="@id/fechasLayout" />
+
+    <Button
+        android:id="@+id/clearAllFiltersButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:paddingTop="6dp"
+        android:paddingBottom="12dp"
+        android:minHeight="48dp"
+        android:background="@color/transparent"
+        android:text="Limpiar Filtros"
+        android:textAllCaps="false"
+        android:textColor="@color/colorPrimary"
+        android:contentDescription="Botón para limpiar todos los filtros"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/applyFiltersButton" />
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/listaPartesRecyclerView"
@@ -130,6 +130,17 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@id/applyFiltersButton" />
+        app:layout_constraintTop_toBottomOf="@id/clearAllFiltersButton" />
 
+    <TextView
+        android:id="@+id/emptyListMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
+        android:text="No hay partes diarios disponibles"
+        android:visibility="gone"
+        app:layout_constraintTop_toBottomOf="@id/clearAllFiltersButton"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>

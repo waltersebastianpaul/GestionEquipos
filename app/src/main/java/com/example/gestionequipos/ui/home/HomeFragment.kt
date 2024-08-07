@@ -60,16 +60,16 @@ class HomeFragment : Fragment() {
             binding.userTextView.visibility = View.VISIBLE
         }
 
-        binding.logoutButton.setOnClickListener {
-            val sharedPreferences = requireActivity().getSharedPreferences("mis_preferencias", Context.MODE_PRIVATE)
-            val editor = sharedPreferences.edit()
-            editor.clear()
-            editor.apply()
-
-            val intent = Intent(requireActivity(), LoginActivity::class.java)
-            startActivity(intent)
-            requireActivity().finish()
-        }
+//        binding.logoutButton.setOnClickListener {
+//            val sharedPreferences = requireActivity().getSharedPreferences("mis_preferencias", Context.MODE_PRIVATE)
+//            val editor = sharedPreferences.edit()
+//            editor.clear()
+//            editor.apply()
+//
+//            val intent = Intent(requireActivity(), LoginActivity::class.java)
+//            startActivity(intent)
+//            requireActivity().finish()
+//        }
     }
 
     override fun onResume() {
@@ -86,25 +86,25 @@ class HomeFragment : Fragment() {
             findNavController().navigate(R.id.nav_partediario)
         }
 
-        // Configuración del ExtendedFloatingActionButton
-        val extendedFab: ExtendedFloatingActionButton? = requireActivity().findViewById(R.id.extended_fab)
-        extendedFab?.let { fab ->
-            fab.setIconResource(R.drawable.ic_add)
-            fab.text = getString(R.string.etiqueta_fab)
-            fab.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
-            fab.backgroundTintList = ColorStateList.valueOf(
-                ContextCompat.getColor(requireContext(), R.color.colorPrimary)
-            )
-            fab.iconTint = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.white))
-
-            fab.setOnClickListener {
-                try {
-                    findNavController().navigate(R.id.nav_partediario)
-                } catch (e: Exception) {
-                    Snackbar.make(requireView(), "Error al navegar: ${e.message}", Snackbar.LENGTH_LONG).show()
-                }
-            }
-        }
+//        // Configuración del ExtendedFloatingActionButton
+//        val extendedFab: ExtendedFloatingActionButton? = requireActivity().findViewById(R.id.extended_fab)
+//        extendedFab?.let { fab ->
+//            fab.setIconResource(R.drawable.ic_add)
+//            fab.text = getString(R.string.etiqueta_fab)
+//            fab.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+//            fab.backgroundTintList = ColorStateList.valueOf(
+//                ContextCompat.getColor(requireContext(), R.color.colorPrimary)
+//            )
+//            fab.iconTint = ColorStateList.valueOf(ContextCompat.getColor(requireContext(), R.color.white))
+//
+//            fab.setOnClickListener {
+//                try {
+//                    findNavController().navigate(R.id.nav_partediario)
+//                } catch (e: Exception) {
+//                    Snackbar.make(requireView(), "Error al navegar: ${e.message}", Snackbar.LENGTH_LONG).show()
+//                }
+//            }
+//        }
 
     }
 

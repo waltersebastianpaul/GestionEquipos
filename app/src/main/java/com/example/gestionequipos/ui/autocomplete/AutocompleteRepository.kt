@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Log
 import com.example.gestionequipos.data.Equipo
 import com.example.gestionequipos.data.Obra
+import com.example.gestionequipos.utils.Constants
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import kotlinx.coroutines.Dispatchers
@@ -13,7 +14,7 @@ import okhttp3.Request
 import java.util.concurrent.TimeUnit
 
 object AutocompleteRepository {
-    private val baseUrl = "https://adminobr.000webhostapp.com/" // Reemplaza con tu URL base
+    private val baseUrl = Constants.getBaseUrl() //"https://adminobr.000webhostapp.com/" // Reemplaza con tu URL base
 
     private var obras: List<Obra>? = null
     private var equipos: List<Equipo>? = null

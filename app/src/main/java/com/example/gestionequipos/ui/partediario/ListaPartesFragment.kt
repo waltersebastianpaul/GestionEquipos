@@ -1,14 +1,15 @@
 package com.example.gestionequipos.ui.partediario
 
 import android.app.DatePickerDialog
+import android.content.Context
 import android.os.Bundle
 import android.text.Editable
-import android.text.InputFilter
 import android.text.TextWatcher
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.ArrayAdapter
 import android.widget.AutoCompleteTextView
 import android.widget.Button
@@ -17,7 +18,7 @@ import androidx.fragment.app.activityViewModels
 import androidx.fragment.app.viewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import androidx.paging.PagingDataAdapter
+import androidx.paging.LoadState
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.gestionequipos.R
 import com.example.gestionequipos.databinding.FragmentListaPartesBinding
@@ -47,7 +48,7 @@ class ListaPartesFragment : Fragment() {
 
     private var isDatePickerOpen = false // Variable para controlar si el DatePicker está abierto
 
-    private val autocompleteViewModel: AutocompleteViewModel by activityViewModels()
+//    private val autocompleteViewModel: AutocompleteViewModel by activityViewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -91,7 +92,24 @@ class ListaPartesFragment : Fragment() {
         // Observa los datos del ViewModel y configura el adaptador del RecyclerView
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.partesDiarios.collectLatest { pagingData ->
+                Log.d("ListaPartesFragment", "PagingData recibido: $pagingData")
                 adapter.submitData(pagingData)
+            }
+        }
+
+        adapter.addLoadStateListener { loadState ->
+            Log.d("ListaPartesFragment", "LoadState cambiado: ${loadState.source.refresh}")
+            if (loadState.source.refresh is LoadState.NotLoading) {
+                Log.d("ListaPartesFragment", "Datos recibidos: ${adapter.itemCount}")
+                if (adapter.itemCount == 0) {
+                    binding.emptyListMessage.visibility = View.VISIBLE
+                    binding.listaPartesRecyclerView.visibility = View.GONE
+                } else {
+                    binding.emptyListMessage.visibility = View.GONE
+                    binding.listaPartesRecyclerView.visibility = View.VISIBLE
+                }
+            } else if (loadState.source.refresh is LoadState.Error) {
+                Log.e("ListaPartesFragment", "Error al cargar datos", (loadState.source.refresh as LoadState.Error).error)
             }
         }
 
@@ -125,6 +143,7 @@ class ListaPartesFragment : Fragment() {
             filtroFechaInicioEditText.setText("")
             filtroFechaFinEditText.setText("")
             viewModel.setFilter("", "", "")
+            hideKeyboard()
         }
 
         // Configura el botón para aplicar los filtros
@@ -137,6 +156,7 @@ class ListaPartesFragment : Fragment() {
             val fechaFin = filtroFechaFinEditText.text.toString()
             Log.d("ListaPartesFragment", "Aplicando filtro - Equipo: $equipoInterno, FechaInicio: $fechaInicio, FechaFin: $fechaFin")
             viewModel.setFilter(equipoInterno, fechaInicio, fechaFin)
+            hideKeyboard()
         }
 
         // Configura el FloatingActionButton
@@ -179,6 +199,14 @@ class ListaPartesFragment : Fragment() {
                 }
                 datePickerDialog.show()
             }
+        }
+    }
+
+    private fun hideKeyboard() {
+        val inputMethodManager = requireContext().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val view = requireActivity().currentFocus
+        view?.let {
+            inputMethodManager.hideSoftInputFromWindow(it.windowToken, 0)
         }
     }
 

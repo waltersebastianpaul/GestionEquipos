@@ -3,17 +3,17 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:paddingTop="8dp"
-    android:paddingBottom="8dp"
-    android:paddingStart="8dp"
-    android:paddingEnd="8dp"
+    android:paddingTop="5dp"
+    android:paddingBottom="5dp"
+    android:paddingStart="16dp"
+    android:paddingEnd="16dp"
     >
 
     <TextView
         android:id="@+id/fechaTextView"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Fecha: 2023-12-06"
+        android:text="Fecha: 01-01-2024"
         android:textSize="16sp"
         android:textStyle="bold" />
 
@@ -27,14 +27,14 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Equipo: Excavadora" />
+            android:text="Equipo: Equipo" />
 
         <TextView
             android:id="@+id/horasTextView"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="end"
-            android:text="Horas: 8" />
+            android:text="Horas: 0" />
 
     </LinearLayout>
 
