@@ -24,7 +24,7 @@ sealed class Constants {
         // ... otras rutas de obras si es necesario
     }
 
-    object Autheticacion {
+    object Auth {
         const val LOGIN = "auth/login.php"
         const val LOGOUT = "auth/logout.php"
         // ... otras rutas de obras si es necesario

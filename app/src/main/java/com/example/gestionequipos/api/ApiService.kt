@@ -9,12 +9,12 @@ import retrofit2.http.Header
 import retrofit2.http.POST
 
 interface ApiService {
-    @POST(Constants.Autheticacion.LOGIN)
+    @POST(Constants.Auth.LOGIN)
     suspend fun login(
         @Body requestBody: RequestBody,
         @Header("Cache-Control") cacheControl: String = "no-cache"
     ): Response<LoginResponse>
 
-    @POST(Constants.Autheticacion.LOGOUT) // Reemplaza con la URL correcta de tu API
+    @POST(Constants.Auth.LOGOUT) // Reemplaza con la URL correcta de tu API
     suspend fun logout(): Response<Unit>
 }
